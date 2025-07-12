@@ -34,7 +34,7 @@ if($_SESSION['user_type'] == 'user'){
 
                             <div class="col-md-6">
                                 <label class="form-label">Discount Percentage <span style="color: #f00; font-size: 15px;">*</span></label>
-                                <input type="number" class="form-control" name="discount" required>
+                                <input type="number" step="0.01" min="0" class="form-control" name="discount" required>
                             </div>
                         </div>
                         <div class="row g-3 align-items-center">
@@ -75,7 +75,7 @@ if($_SESSION['user_type'] == 'user'){
 
                             <div class="col-md-6">
                                 <label class="form-label">Discount Percentage <span style="color: #f00; font-size: 15px;">*</span></label>
-                                <input type="number" class="form-control" name="discount" required>
+                                <input type="number" step="0.01" min="0" class="form-control" name="discount" required>
                             </div>
                         </div>
                         <div class="row g-3 align-items-center">

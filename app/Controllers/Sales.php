@@ -11,7 +11,8 @@ use App\Models\GroupsModel;
 use App\Models\LensCoatingModel;
 use App\Models\PrevilageCardModel;
 use App\Models\BreakageWarrantyModel;
-
+use App\Models\FrontpageModel;
+use App\Models\EyeTestModel;
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -32,6 +33,8 @@ class Sales extends BaseController
 		$this->lensCoatingModel = new LensCoatingModel();
 		$this->previlageModel = new PrevilageCardModel();
 		$this->warrantyModel = new BreakageWarrantyModel();
+		$this->frontModel = new FrontpageModel();
+		$this->eyeTestModel = new EyeTestModel();
 
 		date_default_timezone_set('Asia/Kolkata');
 
@@ -40,7 +43,8 @@ class Sales extends BaseController
 	{
 		$session = session();
 		if(!empty($_SESSION['user'])){
-			$data['products'] = $this->productModel->AllProducts();
+			$store_id = $_SESSION['store_id'];
+			$data['products'] = $this->productModel->AllProducts($store_id);
 			$productIds = array_column($data['products'], 'pid');
 			$data['product_images'] = $this->productModel->getImagesByProductIds($productIds);
 			$data['groups'] = $this->groupModel->AllGroups();
@@ -52,11 +56,12 @@ class Sales extends BaseController
 	}
 	public function getSalesDataByBarcode()
 	{
+		$session = session();
 	    $query = $this->request->getGet('query'); // Get the search query
 	    $limit = $this->request->getGet('limit') ?: 10; // Optional limit
 	    $offset = $this->request->getGet('offset') ?: 0; // Optional offset
-
-	    $products = $this->productModel->searchProducts($query, $limit, $offset);
+	    $store_id = $_SESSION['store_id'];
+	    $products = $this->productModel->searchProducts($query, $limit, $offset, $store_id);
 		$productIds = array_column($products, 'pid');
 	    $productImages = $this->productModel->getImagesByProductIds($productIds);
 
@@ -66,7 +71,9 @@ class Sales extends BaseController
 	    ]);
 	}
 	public function get_all_products() {
-        $products = $this->productModel->AllProducts();
+		$session = session();
+		$store_id = $_SESSION['store_id'];
+        $products = $this->productModel->AllProducts($store_id);
 		$productIds = array_column($products, 'pid');
 		$productImages = $this->productModel->getImagesByProductIds($productIds);
 
@@ -92,11 +99,9 @@ class Sales extends BaseController
 			$data['lenslist'] = $this->lenscreationModel->AllLenses();
 			$data['lensfeatures'] = $this->lensfeaturesModel->AllLensFeatures();
 			$data['lenscoating'] = $this->lensCoatingModel->AllLensCoating();
-			$data['eyetest_users'] = $this->saleModel->Allusers();
-			$data['prvilage_users'] = $this->saleModel->PrevilageUsers();
 			$data['salesmans'] = $this->saleModel->Salesmanlist();
 			$data['types'] = $this->previlageModel->AllprevilageTypes();
-
+			$data['maxtestno'] = $this->eyeTestModel->MaxTestno();
 			return view('product_details',$data);
 
 	    } else {
@@ -233,6 +238,7 @@ class Sales extends BaseController
 	            'warranty_amt' => $requestData['warranty_amt'],
 	            'warranty_id' => $requestData['warranty_id'],
 	            'CreatedUser' => $_SESSION['user_id'],
+	            'store_id' => $_SESSION['store_id'],
 				'CreatedDate' => date('Y-m-d H:i:s')
 	        ];
 
@@ -264,14 +270,15 @@ class Sales extends BaseController
 			        'product_image' => $item['product_details']['product_image'],
 			        'color_name' => $item['product_details']['product_color_name'],
 			        'color_code' => $item['product_details']['product_color_code'],
-			        'lensid' => $item['lens_details']['lens_id'],
-			        'lens_rate' => str_replace('₹', '', $item['lens_details']['lens_price']),
-			        'lens_discount' => str_replace('₹', '', $item['lens_details']['lens_discount']),
-			        'coating_id' => $item['coating_details']['coating_id'],
-			        'coating_rate' => str_replace('₹', '', $item['coating_details']['coating_price']),
-			        'coating_discount' => str_replace('₹', '', $item['coating_details']['coating_discount']),
+			        'lensid' => $item['lens_details']['lens_id'] ?? '',
+			        'lens_rate' => str_replace('₹', '', $item['lens_details']['lens_price'] ?? ''),
+			        'lens_discount' => str_replace('₹', '', $item['lens_details']['lens_discount'] ?? ''),
+			        'coating_id' => $item['coating_details']['coating_id'] ?? '',
+			        'coating_rate' => str_replace('₹', '', $item['coating_details']['coating_price'] ?? ''),
+			        'coating_discount' => str_replace('₹', '', $item['coating_details']['coating_discount'] ?? ''),
 			        'eyetest_id' => isset($item['medical_record']['eye_id']) ? $item['medical_record']['eye_id'] : 0,
-			        'delivery_date' => $item['lens_details']['exp_delivery_date']
+			        'delivery_date' => $item['lens_details']['exp_delivery_date'] ?? '',
+			        'store_id' => $_SESSION['store_id']
 			    ];
 			    $salesDetails[] = $salesDetailData;
 
@@ -286,6 +293,8 @@ class Sales extends BaseController
 		            'purchase_rate' => 0,
 		            'sales_rate' => str_replace('₹', '', $item['product_details']['product_price']),
 		            'stock_date' => $salesMasterData['invoice_date'],
+		           	'store_id' => $_SESSION['store_id'],
+		           	'CreatedUser' => $_SESSION['user_id'],
 					'CreatedDate' => date('Y-m-d H:i:s')
 		        ];
 	        	$add_stock = $this->saleModel->Add_Stock($stockdata);
@@ -298,10 +307,11 @@ class Sales extends BaseController
 
 				if (!empty($item['medical_record']) && !empty($item['medical_record']['eye_id'])) {
 			        $frameMeasurement = json_encode($item['medical_record']['frame_measurement']);
+			        $Prescription = json_encode($item['medical_record']['Prescription']);
 			        $eyeTestId = $item['medical_record']['eye_id'];
 
 			        // Update frame_measurement in tbl_eye_test
-			        $this->saleModel->updateFrameMeasurement($eyeTestId, $frameMeasurement);
+			        $this->saleModel->updateFrameMeasurement($eyeTestId, $frameMeasurement, $Prescription);
 			    }
 			}
 
@@ -326,6 +336,8 @@ class Sales extends BaseController
 		            'PaidAmount' => $requestData['advance_amt'],
 		            'Balance' => $requestData['bal_amount'],
 		            'SalesManId' => $requestData['salesman'],
+		            'store_id' => $_SESSION['store_id'],
+		            'CreatedUser' => $_SESSION['user_id'],
 					'CreatedDate' => date('Y-m-d H:i:s')
 		        ];
 
@@ -344,7 +356,7 @@ class Sales extends BaseController
 				$coupen_details = $this->saleModel->coupenDetails($MasterData[0]->coupen_id);
 				$ReturnAmount = $this->saleModel->getReturnamount($MasterData[0]->Return_MasterId);
 				$warranty_details = $this->warrantyModel->WarrantyEditMdl($MasterData[0]->warranty_id);
-
+				$header_image = $this->saleModel->getHeaderImage($MasterData[0]->store_id);
 
 				$combinedData = [
 				    'salesMasterData' => [
@@ -373,6 +385,7 @@ class Sales extends BaseController
 				        'ReturnAmount' => $ReturnAmount ?? '',
 				        'warranty_amt' => $warranty_details[0]->sales_rate ?? '',
 		        		'warranty_name' => $warranty_details[0]->name ?? '',
+		        		'header_image' => $header_image,
 
 				    ],
 				    'salesDetailData' => array_map(function($salesItem) {
@@ -380,6 +393,7 @@ class Sales extends BaseController
 				        return [
 				            'sales_masterId' => $salesItem->sales_masterId,
 				            'product_id' => $salesItem->pid,
+				            'barcode' => $this->saleModel->getBarcode($salesItem->pid),
 				            'product_name' => $salesItem->productName,
 				            'product_color' => 'Selected Color: '.$salesItem->color_name,
 				            'product_rate' => $salesItem->product_rate,
@@ -532,6 +546,7 @@ class Sales extends BaseController
 	            'ReturnAmount' => $requestData['returnData']['returnBillAmount'],
 	            'isWarrantyApplied' => $requestData['isWarrantyApplied'],
 				'CreatedDate' => date('Y-m-d H:i:s'),
+				'store_id' => $_SESSION['store_id'],
 	            'CreatedUser' => $_SESSION['user_id']
 	        ];
 
@@ -579,6 +594,8 @@ class Sales extends BaseController
 		            'purchase_rate' => 0,
 		            'sales_rate' => $returnDetails['product_rate'],
 		            'stock_date' => $returnDetails['invoice_date'],
+					'store_id' => $_SESSION['store_id'],
+					'CreatedUser' => $_SESSION['user_id'],
 					'CreatedDate' => date('Y-m-d H:i:s')
 		        ];
 	        	$add_stock = $this->saleModel->Add_Stock($stockdata);
@@ -608,6 +625,7 @@ class Sales extends BaseController
 		            'ReturnDescription' => $requestData['desc'],
 		            'ReturnImage' => $returnImagePath,
 		            'CreatedDate' => date('Y-m-d H:i:s'),
+		            'store_id' => $_SESSION['store_id'],
 	            	'CreatedUser' => $_SESSION['user_id']
 		        ];
         		$details = $this->saleModel->Add_return_deatils($returndetails);
@@ -665,6 +683,7 @@ class Sales extends BaseController
 		$coupen_details = $this->saleModel->coupenDetails(3);
 		$ReturnAmount = $this->saleModel->getReturnamount(63);
 		$warranty_details = $this->warrantyModel->WarrantyEditMdl(2);
+		$header_image = $this->saleModel->getHeaderImage(2);
 
 		$combinedData = [
 		    'salesMasterData' => [
@@ -693,12 +712,15 @@ class Sales extends BaseController
 		        'ReturnAmount' => $ReturnAmount ?? '',
 		        'warranty_amt' => $warranty_details[0]->sales_rate ?? '',
 		        'warranty_name' => $warranty_details[0]->name ?? '',
+		        'header_image' => $header_image,
+
 
 		    ],
 		    'salesDetailData' => [
 		          [
 				    'sales_masterId' => 25,
                     'product_id' => 165,
+                    'barcode' => 656565545,
                     'product_name' => 'Voyage Exclusive Black Polarized Wayfarer Sunglasses For Men & Women - PMG4582',
                     'product_color' => 'Selected Color: White',
                     'product_rate' => 1299.00,
@@ -721,6 +743,7 @@ class Sales extends BaseController
 				[
 				   'sales_masterId' => 25,
                     'product_id' => 165,
+                    'barcode' => 6565445,
                     'product_name' => 'Zealux Tr Full Frame',
                     'product_color' => 'Selected Color: White',
                     'product_rate' => 1299.00,
@@ -805,35 +828,127 @@ class Sales extends BaseController
 			return view('login');
 		}
 	}
-	public function SalesReport()
+	public function CustomerReviewReport()
 	{
 		$session = session();
 		if(!empty($_SESSION['user'])){
-			return view('sales_report');
+			return view('customer_review_report');
 		} else {
 			return view('login');
 		}
 	}
-	public function getSalesReportByDate()
+	public function CustomerReviewReportByDate()
+	{
+		$session = session();
+	    if (!empty($_SESSION['user'])) {
+	        $fromDate = $this->request->getPost('from_date');
+	        $toDate = $this->request->getPost('to_date');
+	        $allreport = $this->request->getPost('allreport');
+
+	        $user = $_SESSION['user_id'];
+
+	        $start = $this->request->getPost('start');
+	        $length = $this->request->getPost('length');
+	        $draw = $this->request->getPost('draw');
+
+	        // Get total count of records before filtering
+	        $totalRecords = $this->saleModel->countReviewTotalRecords($fromDate, $toDate, $allreport, $user);
+
+	        // Get filtered data with pagination
+	        $report = $this->saleModel->getCustomerReviewReport($fromDate, $toDate, $allreport, $user, $start, $length);
+
+	        return $this->response->setJSON([
+	            'data' => $report,
+	            "draw" => intval($this->request->getPost('draw')),
+	            "recordsTotal" => $totalRecords,
+	            "recordsFiltered" => $totalRecords
+	        ]);
+	    } else {
+	        return view('login');
+	    }
+	}
+	public function SalesReport()
 	{
 		$session = session();
 		if(!empty($_SESSION['user'])){
-		    $fromDate = $this->request->getPost('from_date');
-		    $toDate = $this->request->getPost('to_date');
-		    $status = $this->request->getPost('status');
-		    $user = $_SESSION['user_id'];
 
-		    $report = $this->saleModel->getSalesReport($fromDate, $toDate, $status, $user);
-		    return $this->response->setJSON($report);
-	    } else {
+			if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'user'){
+	        	$store_id = $_SESSION['store_id'];
+	        }else{
+	        	$store_id = '';
+	        }
+			$data['stores'] = $this->frontModel->AllStores($store_id);
+			return view('sales_report',$data);
+		} else {
 			return view('login');
 		}
 	}
+
+	public function getSalesReportByDate()
+	{
+		$session = session();
+	    if (!empty($_SESSION['user'])) {
+	        $fromDate = $this->request->getPost('from_date');
+	        $toDate = $this->request->getPost('to_date');
+	        $status = $this->request->getPost('status');
+	        $mobile = $this->request->getPost('mobile');
+	        $cname = $this->request->getPost('cname');
+	        $allreport = $this->request->getPost('allreport');
+
+	        if($_SESSION['user_type'] == 'user'){
+	        	$store_id = $_SESSION['store_id'];
+	        }else{
+	        	$store_id = $this->request->getPost('store');
+	        }
+
+	        $user = $_SESSION['user_id'];
+
+	        $start = $this->request->getPost('start');
+	        $length = $this->request->getPost('length');
+	        $draw = $this->request->getPost('draw');
+
+	        // Get total count of records before filtering
+	        $totalRecords = $this->saleModel->countTotalRecords($fromDate, $toDate, $status, $allreport, $mobile, $cname, $user, $store_id);
+
+	        // Get filtered data with pagination
+	        $report = $this->saleModel->getSalesReport($fromDate, $toDate, $status, $allreport, $mobile, $cname, $user, $store_id, $start, $length);
+
+	        $overallTotal = 0;
+	        $paidTotal = 0;
+	        $balanceTotal = 0;
+
+	        // Loop through the report to calculate totals
+	        foreach ($report as $row) {
+	            $overallTotal += floatval($row->total_amount ?? 0);
+	            $paidTotal += floatval($row->totalPaid ?? 0);
+	            $balanceTotal += floatval(($row->total_amount - $row->totalPaid) ?? 0);
+	        }
+
+	        return $this->response->setJSON([
+	            'data' => $report,
+	            "draw" => intval($this->request->getPost('draw')),
+	            "recordsTotal" => $totalRecords,
+	            "recordsFiltered" => $totalRecords,
+	            'overalltotal' => number_format($overallTotal, 2, '.', ''),
+	            'paidTotal' => number_format($paidTotal, 2, '.', ''),
+	            'balanceTotal' => number_format($balanceTotal, 2, '.', '')
+	        ]);
+	    } else {
+	        return view('login');
+	    }
+	}
+
 	public function DeletedSalesReport()
 	{
 		$session = session();
 		if(!empty($_SESSION['user'])){
-			return view('deleted_sales_report');
+			if($_SESSION['user_type'] == 'admin' || $_SESSION['user_type'] == 'user'){
+	        	$store_id = $_SESSION['store_id'];
+	        }else{
+	        	$store_id = '';
+	        }
+			$data['stores'] = $this->frontModel->AllStores($store_id);
+			return view('deleted_sales_report',$data);
 		} else {
 			return view('login');
 		}
@@ -846,7 +961,12 @@ class Sales extends BaseController
 		    $toDate = $this->request->getPost('to_date');
 		    $user = $_SESSION['user_id'];
 
-		    $report = $this->saleModel->getDeletedSalesReports($fromDate, $toDate, $user);
+		    if($_SESSION['user_type'] == 'user'){
+	        	$store_id = $_SESSION['store_id'];
+	        }else{
+	        	$store_id = $this->request->getPost('store');
+	        }
+		    $report = $this->saleModel->getDeletedSalesReports($fromDate, $toDate, $user, $store_id);
 		    return $this->response->setJSON($report);
 	    } else {
 			return view('login');
@@ -856,6 +976,8 @@ class Sales extends BaseController
 	{
 		$salesMasterData = $this->saleModel->SalesReportData($id);
 		$salesDetailData = $this->saleModel->SalesDetailsReportData($id);
+		$header_image = $this->saleModel->getHeaderImage($salesMasterData[0]->store_id);
+
 		$salesman = $this->saleModel->SalesmanName($salesMasterData[0]->salesman_id);
 
         $options = new Options();
@@ -896,6 +1018,7 @@ class Sales extends BaseController
 		        'ReturnAmount' => $ReturnAmount ?? '',
 		        'warranty_amt' => $warranty_details[0]->sales_rate ?? '',
 		        'warranty_name' => $warranty_details[0]->name ?? '',
+		        'header_image' => $header_image,
 
 		    ],
 		    'salesDetailData' => array_map(function($salesItem) {
@@ -903,6 +1026,7 @@ class Sales extends BaseController
 		        return [
 		            'sales_masterId' => $salesItem->sales_masterId,
 		            'product_id' => $salesItem->pid,
+		            'barcode' => $this->saleModel->getBarcode($salesItem->pid),
 		            'product_name' => $salesItem->productName,
 		            'product_color' => 'Selected Color: '.$salesItem->color_name,
 		            'product_rate' => $salesItem->product_rate,
@@ -960,6 +1084,7 @@ class Sales extends BaseController
 		$coupen_details = $this->saleModel->coupenDetails($salesMasterData[0]->coupen_id);
 		$ReturnAmount = $this->saleModel->getReturnamount($salesMasterData[0]->Return_MasterId);
 		$warranty_details = $this->warrantyModel->WarrantyEditMdl($salesMasterData[0]->warranty_id);
+		$header_image = $this->saleModel->getHeaderImage($salesMasterData[0]->store_id);
 
 		$combinedData = [
 		    'salesMasterData' => [
@@ -988,6 +1113,7 @@ class Sales extends BaseController
 		        'ReturnAmount' => $ReturnAmount ?? '',
 		        'warranty_amt' => $warranty_details[0]->sales_rate ?? '',
 		        'warranty_name' => $warranty_details[0]->name ?? '',
+		        'header_image' => $header_image,
 
 		    ],
 		    'salesDetailData' => array_map(function($salesItem) {
@@ -995,6 +1121,7 @@ class Sales extends BaseController
 		        return [
 		            'sales_masterId' => $salesItem->sales_masterId,
 		            'product_id' => $salesItem->pid,
+		            'barcode' => $this->saleModel->getBarcode($salesItem->pid),
 		            'product_name' => $salesItem->productName,
 		            'product_color' => 'Selected Color: '.$salesItem->color_name,
 		            'product_rate' => $salesItem->product_rate,
@@ -1044,7 +1171,7 @@ class Sales extends BaseController
 			$coupen_details = $this->saleModel->coupenDetails($salesMasterData[0]->coupen_id);
 			$ReturnAmount = $this->saleModel->getReturnamount($salesMasterData[0]->Return_MasterId);
 			$warranty_details = $this->warrantyModel->WarrantyEditMdl($salesMasterData[0]->warranty_id);
-
+			$header_image = $this->saleModel->getHeaderImage($salesMasterData[0]->store_id);
 
 			$combinedData = [
 			    'salesMasterData' => [
@@ -1073,6 +1200,7 @@ class Sales extends BaseController
 			        'ReturnAmount' => $ReturnAmount ?? '',
 			        'warranty_amt' => $warranty_details[0]->sales_rate ?? '',
 		        	'warranty_name' => $warranty_details[0]->name ?? '',
+		        	'header_image' => $header_image,
 
 			    ],
 			    'salesDetailData' => array_map(function($salesItem) {
@@ -1080,6 +1208,7 @@ class Sales extends BaseController
 			        return [
 			            'sales_masterId' => $salesItem->sales_masterId,
 			            'product_id' => $salesItem->pid,
+			            'barcode' => $this->saleModel->getBarcode($salesItem->pid),
 			            'product_name' => $salesItem->productName,
 			            'product_color' => 'Selected Color: '.$salesItem->color_name,
 			            'product_rate' => $salesItem->product_rate,
@@ -1179,6 +1308,8 @@ class Sales extends BaseController
 			$data['PaymentMode'] = $this->request->getPost('pay_mode');
 			$data['ReferanceNo'] = $this->request->getPost('refno');
 			$data['InvoiceNo'] = $this->request->getPost('invoice_no');
+			$data['CreatedUser'] = $_SESSION['user_id'];
+			$data['store_id'] = $_SESSION['store_id'];
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
 
 			$insertid = $this->saleModel->Add_InvoiceReceipt($data);
@@ -1196,6 +1327,8 @@ class Sales extends BaseController
 					$coupen_details = $this->saleModel->coupenDetails($salesMasterData[0]->coupen_id);
 					$ReturnAmount = $this->saleModel->getReturnamount($salesMasterData[0]->Return_MasterId);
 					$warranty_details = $this->warrantyModel->WarrantyEditMdl($salesMasterData[0]->warranty_id);
+					$header_image = $this->saleModel->getHeaderImage($salesMasterData[0]->store_id);
+
 
 					$combinedData = [
 					    'salesMasterData' => [
@@ -1224,6 +1357,7 @@ class Sales extends BaseController
 					        'ReturnAmount' => $ReturnAmount ?? '',
 					        'warranty_amt' => $warranty_details[0]->sales_rate ?? '',
 		        			'warranty_name' => $warranty_details[0]->name ?? '',
+		        			'header_image' => $header_image,
 
 					    ],
 					    'salesDetailData' => array_map(function($salesItem) {
@@ -1231,6 +1365,7 @@ class Sales extends BaseController
 					        return [
 					            'sales_masterId' => $salesItem->sales_masterId,
 					            'product_id' => $salesItem->pid,
+					            'barcode' => $this->saleModel->getBarcode($salesItem->pid),
 					            'product_name' => $salesItem->productName,
 					            'product_color' => 'Selected Color: '.$salesItem->color_name,
 					            'product_rate' => $salesItem->product_rate,
@@ -1339,6 +1474,7 @@ class Sales extends BaseController
 	            'CreatedUser' => $salesMasterData[0]->CreatedUser,
 				'CreatedDate' => $salesMasterData[0]->CreatedDate,
 				'deleted_user' => $_SESSION['user_id'],
+	            'store_id' => $_SESSION['store_id'],
 				'deleted_date' => date('Y-m-d'),
 	        ];
 
@@ -1354,6 +1490,7 @@ class Sales extends BaseController
 				            'salesmaster_history_id' => $salesHistoryId,
 				            'sales_masterId' => $salesItem->sales_masterId,
 				            'pid' => $salesItem->pid,
+				            'barcode' => $this->saleModel->getBarcode($salesItem->pid),
 				            'color_name' => $salesItem->color_name,
 				            'color_code' => $salesItem->color_code,
 				            'lensid' => $salesItem->lensid,
@@ -1632,8 +1769,9 @@ class Sales extends BaseController
 		    $barcode = $this->request->getPost('barcode');
 		    $group = $this->request->getPost('group');
 		    $model = $this->request->getPost('model');
+		    $store_id = $_SESSION['store_id'];
 
-		    $products = $this->saleModel->stockReportMdl($name, $barcode, $group, $model);
+		    $products = $this->saleModel->stockReportMdl($name, $barcode, $group, $model, $store_id);
 			$productIds = array_column($products, 'pid');
 			$product_images = $this->saleModel->getImagesByProductIds($productIds);
 
@@ -1646,6 +1784,159 @@ class Sales extends BaseController
 	    } else {
 			return view('login');
 		}
+	}
+
+	public function getEyetestUsers()
+	{
+		$session = session();
+		if(!empty($_SESSION['user'])){
+
+		    $query = $this->request->getPost('query');
+
+		    if (!$query) {
+		        return $this->response->setJSON([]); 
+		    }
+
+		    $data = $this->saleModel->EyetestUsersMdl($query);
+		    return $this->response->setJSON($data);
+
+	    } else {
+			return view('login');
+		}
+	}
+	public function getLensCleanerDetails()
+	{
+		$session = session();
+		if(!empty($_SESSION['user'])){
+
+		    $barcode = $this->request->getGet('barcode');
+		    $details = $this->saleModel->ProductDataByBarcode($barcode);
+
+	        return $this->response->setJSON([
+	            'status' => 'success',
+	            'data' => $details
+	        ]);
+		   
+	    } else {
+			return view('login');
+		}	
+	}
+	public function GetCoatingDetails() {
+		$session = session();
+		if(!empty($_SESSION['user'])){
+
+		    $lensid = $this->request->getGet('lensid');
+
+			$data = $this->saleModel->GetCoating_Details($lensid); 
+			$lensCoatingId = array_map('intval', explode(',', $data->lensCoatingId));
+
+			$lensCoatings = $this->saleModel->Coating_Data($lensCoatingId); 
+			$lensfeatures = $this->lensfeaturesModel->AllLensFeatures(); 
+
+			$coatings = [];
+
+			foreach ($lensCoatings as $c) {
+			    $lens_features = explode(',', $c->lensFeaturesId ?? '');
+
+			    $featureList = [];
+			    foreach ($lensfeatures as $f) {
+			        if (in_array($f->id, $lens_features)) {
+			            $featureList[] = [
+			                'id'         => $f->id,
+			                'image'      => base_url('images/lensfeatures/' . $f->image),
+			                'description'=> $f->description,
+			                'lensName'   => $data->lensName
+			            ];
+			        }
+			    }
+
+			    $coatings[] = [
+			        'id'           => $c->id,
+			        'coating_name' => $c->coating_name,
+			        'amount'       => $c->amount,
+			        'description'  => $c->description,
+			        'image'        => $c->image,
+			        'features'     => $featureList
+			    ];
+			}
+
+			return $this->response->setJSON([
+			    'valid'         => true,
+			    'lensCoatingId' => $coatings
+			]);
+
+
+
+		    // if ($lensCoatings) {
+		    //     echo json_encode(['valid' => true, 'lensCoatingId' => $lensCoatings]);
+		    // } else {
+		    //     echo json_encode(['valid' => false]);
+		    // }
+	    } else {
+			return view('login');
+		}
+	}
+
+
+	public function SaveMedicalRecord()
+	{
+		$session = session();
+		if(!empty($_SESSION['user'])){
+
+			$data['Testno'] = $this->request->getPost('testno');
+			$data['Test_date'] = $this->request->getPost('testdate');
+			$data['CustomerName'] = $this->request->getPost('cutomer');
+			$data['dob'] = $this->request->getPost('ndob');
+			$data['CustomerAge'] = $this->request->getPost('age');
+			$data['Gender'] = $this->request->getPost('gender');
+			$data['MobileNo1'] = $this->request->getPost('mob1');
+			$data['MobileNo2'] = $this->request->getPost('mob2');
+			$data['Email'] = $this->request->getPost('email');
+
+			$prescription_sph_right = $this->request->getPost('nsphrr');
+			$prescription_sph_left = $this->request->getPost('nsphll');
+			$prescription_cyl_right = $this->request->getPost('ncylrr');
+			$prescription_cyl_left = $this->request->getPost('ncylll');
+			$prescription_axis_right = $this->request->getPost('naxisrr');
+			$prescription_axis_left = $this->request->getPost('naxisll');
+			$prescription_add_right = $this->request->getPost('naddrr');
+			$prescription_add_left = $this->request->getPost('naddll');
+			$prescription_pd_right = $this->request->getPost('npdrr');
+			$prescription_pd_left = $this->request->getPost('npdll');
+
+			$Prescription = json_encode([
+			    'right' => ['sph' => $prescription_sph_right, 'cyl' => $prescription_cyl_right, 'axis' => $prescription_axis_right, 'add' => $prescription_add_right, 'pd' => $prescription_pd_right],
+			    'left' => ['sph' => $prescription_sph_left, 'cyl' => $prescription_cyl_left, 'axis' => $prescription_axis_left, 'add' => $prescription_add_left, 'pd' => $prescription_pd_left]
+			]);
+
+			$data['Prescription'] = $Prescription;
+
+			$segmentheight_right = $this->request->getPost('segmentheight_right');
+			$fittingheight_right = $this->request->getPost('fittingheight_right');
+			$segmentheight_left = $this->request->getPost('segmentheight_left');
+			$fittingheight_left = $this->request->getPost('fittingheight_left');
+
+			$frame_measurement = json_encode([
+			    'right' => ['segmentheight' => $segmentheight_right, 'fittingheight' => $fittingheight_right],
+			    'left' => ['segmentheight' => $segmentheight_left, 'fittingheight' => $fittingheight_left]
+			]);
+			$data['frame_measurement'] = $frame_measurement;
+
+			$data['CreatedDate'] = date('Y-m-d H:i:s');
+			$data['CreatedUser'] = $_SESSION['user_id'];
+			$data['store_id'] = $_SESSION['store_id'];
+
+			$insertid = $this->eyeTestModel->InsertEyeTest($data);
+
+			if($insertid){
+				return $this->response->setJSON(['status' => 'success']);
+			}else{
+				return $this->response->setJSON(['status' => 'failed']);
+			}
+			
+		} else {
+			return view('login');
+		}	
 	}
 
 

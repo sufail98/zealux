@@ -7587,6 +7587,9 @@ fieldset:disabled .btn {
 .pt-5 {
     padding-top: 3rem !important;
 }
+.pt-17 {
+    padding-top: 17rem !important;
+}
 .pe-0 {
     padding-right: 0 !important;
 }
@@ -18955,9 +18958,9 @@ body.rtl_mode .modal.right.fade.show .modal-dialog {
     color: var(--text-color);
 }
 .avatar {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    width: 50px;
+    min-width: 50px;
+    height: 50px;
 }
 .avatar.xs {
     width: 16px;
@@ -22132,7 +22135,7 @@ table.dataTable > tbody > tr.child ul.dtr-details {
 .print_invoice .meta {
     float: right;
     margin-top: 1px;
-    width: 300px;
+    width: 400px;
 }
 .print_invoice .meta td {
     text-align: right;
@@ -22553,7 +22556,8 @@ table.dataTable > tbody > tr.child ul.dtr-details {
 .coating-image .form-check{
     z-index: 9999;
     position: absolute;
-    bottom: 50px;
+    bottom: 3px;
+    right: 50px;
 }
 .coating-btns{
     display: flex;
@@ -22579,7 +22583,7 @@ table.dataTable > tbody > tr.child ul.dtr-details {
 }
 .card-carousel .active img {
   transform: translateX(0);
-  height: 425px;
+  /*height: 425px;*/
 }
 .card-carousel .active .card-body .card-title,
 .card-carousel .active .card-body .card-text,
@@ -22594,6 +22598,7 @@ table.dataTable > tbody > tr.child ul.dtr-details {
   display: flex;
   justify-content: start;
   z-index: 2;
+  bottom: -97px;
 }
 .card-carousel .card-carousel__nav .carousel__arrow {
   display: flex;
@@ -22652,6 +22657,11 @@ table.dataTable > tbody > tr.child ul.dtr-details {
     font-weight: 800;
     margin: 5px 0;
     font-style: italic;
+}
+.cart-barcode{
+    font-size: 13px;
+    margin: 0;
+    color: #000000;
 }
 .cut-rate{
     text-decoration: line-through;
@@ -22728,15 +22738,39 @@ table.dataTable > tbody > tr.child ul.dtr-details {
     color: var(--white-color);
 }
 
-#segmentheight_right, #segmentheight_left{
+#segmentheight_right, #segmentheight_left, #segmentheight_r, #segmentheight_l{
     background-color: #77CDFF !important; 
     color: var(--white-color);
 }
-#fittingheight_right, #fittingheight_left{
+#fittingheight_right, #fittingheight_left, #fittingheight_r, #fittingheight_l{
     background-color: #6A9AB0 !important;
     color: var(--white-color); 
 }
 
+#sphrr, #sphll, #nsphrr, #nsphll{
+    background-color: #77CDFF !important; 
+    color: var(--white-color);
+}
+
+#cylrr, #cylll, #ncylrr, #ncylll{
+    background-color: #6A9AB0 !important; 
+    color: var(--white-color);
+}
+
+#axisrr, #axisll, #naxisrr, #naxisll{
+    background-color: #DA8359 !important; 
+    color: var(--white-color);
+}
+
+#addrr, #addll, #naddrr, #naddll{
+    background-color: #BC7C7C !important; 
+    color: var(--white-color);
+}
+
+#pdrr, #pdll, #npdrr, #npdll{
+    background-color: #626F47 !important; 
+    color: var(--white-color);
+}
 
 .features-list{
     display: flex;
@@ -22780,4 +22814,61 @@ table.dataTable > tbody > tr.child ul.dtr-details {
 }
 .logo-mainimg{
     height: 66px;
+}
+
+
+
+
+.questions p{
+    font-size: 17px;
+    color: #000;
+}
+
+.rating-options {
+  --icon-size: 34px;
+  display: flex;
+  gap: 20px;
+}
+
+.rating-options label svg {
+  display: block;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  fill: light-dark(#222428, #e2e6e9);
+  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.rating-options [type="radio"]:checked:is(:focus-visible) + label {
+  outline: 1px dotted light-dark(#222428, #e2e6e9);
+}
+.rating-options label:hover svg {
+  transform: scale(1.4);
+  cursor: pointer;
+}
+
+/* a label which is being hovered on */
+.rating-options label:hover svg,
+/* labels which are previous siblings of a hovered label */
+.rating-options label:has(~ label:hover) svg,
+/* the label which is the next sibling of a checked radio */
+.rating-options [type='radio']:checked + label svg,
+/* labels which are previous siblings of a checked radio button */
+.rating-options:has([type='radio']:checked) label:has(~ [type='radio']:checked) svg {
+  fill: #ffc700;
+}
+
+/* 
+VISUALLY HIDDEN UTILITY
+Info: https://piccalil.li/quick-tip/visually-hidden/ 
+*/
+.visually-hiddens {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
 }

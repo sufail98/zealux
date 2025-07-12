@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Models\EyeTestModel;
 use App\Models\LensModel;
+use App\Models\FrontpageModel;
 
 class EyeTest extends BaseController
 {
@@ -11,18 +12,53 @@ class EyeTest extends BaseController
 	{
 		$this->eyeTestModel = new EyeTestModel();
 		$this->lensModel = new LensModel();
+		$this->frontModel = new FrontpageModel();
 	}
 
 	public function index()
 	{
 		$session = session();
 		if(!empty($_SESSION['user'])){
-			$user = $_SESSION['user_id'];
-			$data['eyetest'] = $this->eyeTestModel->AllEyeTest($user);
+			$data['stores'] = $this->frontModel->AllStores();
 			return view('eyetest_list',$data);
 		} else {
 			return view('login');
 		}
+	}
+
+	public function getEyetestByDate()
+	{
+	    $session = session();
+	    if (!empty($_SESSION['user'])) {
+	        $fromDate = $this->request->getPost('from_date');
+	        $toDate = $this->request->getPost('to_date');
+	        $mobile = $this->request->getPost('mobile');
+	        $cname = $this->request->getPost('cname');
+	        $allreport = $this->request->getPost('allreport');
+	        $user = $_SESSION['user_id'];
+
+	        if($_SESSION['user_type'] == 'user'){
+	        	$store_id = $_SESSION['store_id'];
+	        }else{
+	        	$store_id = $this->request->getPost('store');
+	        }
+
+	        $limit = $this->request->getPost('length'); // Number of records per page
+	        $offset = $this->request->getPost('start'); // Start index for pagination
+	        $searchValue = $this->request->getPost('search')['value']; // Search value
+
+	        $data = $this->eyeTestModel->getFilteredEyeTests($fromDate, $toDate, $allreport, $mobile, $cname, $user, $store_id, $limit, $offset, $searchValue);
+	        $totalRecords = $this->eyeTestModel->countTotalEyeTests($fromDate, $toDate, $allreport, $mobile, $cname, $user, $store_id);
+
+	        return $this->response->setJSON([
+	            "draw" => intval($this->request->getPost('draw')),
+	            "recordsTotal" => $totalRecords,
+	            "recordsFiltered" => $totalRecords,
+	            "data" => $data
+	        ]);
+	    } else {
+	        return view('login');
+	    }
 	}
 
 	public function eyeTests($id)
@@ -162,6 +198,7 @@ class EyeTest extends BaseController
 			$data['JCC'] = $this->request->getPost('jcc');
 			$data['GPOutside'] = $this->request->getPost('gpoutside');
 	        $data['CreatedUser'] = $_SESSION['user_id'];
+	        $data['store_id'] = $_SESSION['store_id'];
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
 
 			$insertid = $this->eyeTestModel->UpdateEyeTestMdl($data);
@@ -169,7 +206,6 @@ class EyeTest extends BaseController
 			if($insertid){
 				$session->setFlashdata('alert', 'success|Success...|Added Successfully');
             	return redirect()->to('eye-test');
-					
 			}else{
 				$session->setFlashdata('alert', 'error|Oops...|Try Again');
 		        return redirect()->to('eye-test');
@@ -313,6 +349,7 @@ class EyeTest extends BaseController
 			$data['GPOutside'] = $this->request->getPost('gpoutside');
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
 			$data['CreatedUser'] = $_SESSION['user_id'];
+			$data['store_id'] = $_SESSION['store_id'];
 
 			$update = $this->eyeTestModel->UpdateEyeTestMdl($data);
 
@@ -363,6 +400,7 @@ class EyeTest extends BaseController
 
 			$data['CustomerName'] = $this->request->getPost('cutomer');
 			$data['CustomerAge'] = $this->request->getPost('age');
+			$data['dob'] = $this->request->getPost('dob');
 			$data['Testno'] = $this->request->getPost('testno');
 			$data['Test_date'] = $this->request->getPost('testdate');
 			$data['Gender'] = $this->request->getPost('gender');
@@ -394,6 +432,7 @@ class EyeTest extends BaseController
 			$data['GPOutside'] = $this->request->getPost('gpoutside');
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
 			$data['CreatedUser'] = $_SESSION['user_id'];
+			$data['store_id'] = $_SESSION['store_id'];
 
 			$insertid = $this->eyeTestModel->InsertEyeTest($data);
 
@@ -484,6 +523,7 @@ class EyeTest extends BaseController
 			$data['GPOutside'] = $this->request->getPost('gpoutside');
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
 			$data['CreatedUser'] = $_SESSION['user_id'];
+			$data['store_id'] = $_SESSION['store_id'];
 
 			$insertid = $this->eyeTestModel->UpdateEyeTestMdl($data);
 

@@ -13,7 +13,7 @@
 <body>
 
     <div class="header">
-        <img src="<?= base_url(); ?>/images/header.png" alt="" class="">
+        <img src="<?= base_url(); ?>/images/<?= esc($salesMasterData['header_image']); ?>" alt="" class="">
     </div>
 
     <div class="customer-details">
@@ -52,7 +52,7 @@
                     <img src="<?= esc($salesItem['product_image']) ?>" alt="">
                     <div class="cart-frame-deatils">
                         <h2 class="cart-frame-product-name"><?= esc($salesItem['product_name']) ?></h2>
-                        <p class="selected-color-name-cart"><?= esc($salesItem['product_color']) ?></p>
+                        <p class="selected-color-name-cart">PID: <?= esc($salesItem['barcode']) ?>, <?= esc($salesItem['product_color']) ?></p>
                     </div>
                 </div>
                 <div class="cart-frame-price-sec">
@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <?php if(!empty($salesItem['lens_name'])){?>
+          <!--   <?php if(!empty($salesItem['lens_name'])){?>
                  
             <div class="cart-frame">
                 <div class="cart-frame-show">
@@ -79,7 +79,7 @@
                     <p class="cart-lens-price"></p>
                 </div>
             </div>
-        <?php } ?>
+        <?php } ?> -->
 
 
             <?php if(!empty($salesItem['coating_name'])){?>
@@ -89,6 +89,8 @@
                     <div class="cart-frame-deatils coating" >
                         <h2 class="cart-coating-name"><?= esc($salesItem['coating_name']) ?></h2>
                         <p class="cart-coating-desc"><?= esc($salesItem['coating_desc']) ?></p>
+                        <p class="exp-delivery"><?= esc($salesItem['exp_delivery']) ?></p>
+                        
                     </div>
                 </div>
                 <div class="coating-price-sec">
@@ -439,7 +441,7 @@
     }
     .cart-lens-name{
         font-size: 15px;
-        margin: -45px 0px 0px 160px;
+        margin: -40px 0px 0px 160px;
     }
     .cart-lens-price{
         color: #343a40;

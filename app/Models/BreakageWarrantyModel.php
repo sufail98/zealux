@@ -53,5 +53,13 @@ class BreakageWarrantyModel extends Model
 			return false;
 		}
 	}	
+	public function getWarrantyRateMdl($grandTotal)
+	{
+	    $builder = $this->db->table('tbl_warrenty_card');
+		$builder->select('*');
+		$builder->where('price_from <=', $grandTotal);
+		$builder->where('price_to >=', $grandTotal);
+		return $builder->get()->getResult();
+	}
 	
 }

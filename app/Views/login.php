@@ -17,6 +17,7 @@ $api_url=$protocol.$_SERVER['HTTP_HOST'].dirname($_SERVER['SCRIPT_NAME']).'';
     <title>ZEALUX </title>
     <link rel="icon" href="../favicon.ico" type="image/x-icon"> <!-- Favicon-->
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- project css file  -->
     <link rel="stylesheet" href="<?php echo base_url(); ?>/assets/css/style.min.css">
     <!-- Include SweetAlert CSS and JS -->
@@ -66,6 +67,22 @@ $api_url=$protocol.$_SERVER['HTTP_HOST'].dirname($_SERVER['SCRIPT_NAME']).'';
                                         </a>
                                         <span class="dividers text-muted mt-4">OR</span>
                                     </div> -->
+                                    <?php 
+                                    $uri = service('uri');
+                                    $superadmin = $uri->getSegment(1);
+                                    if($superadmin != 'admin'){?>
+                                    <div class="col-12">
+                                        <div class="mb-2">
+                                            <label class="form-label">Store</label>
+                                            <select class="form-select" aria-label="" name="store" required>
+                                                <option selected="">Select Store</option>
+                                                <?php foreach ($stores as $stores) { ?>
+                                                <option value="<?php echo $stores->storeId; ?>"><?php echo $stores->store_name; ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <?php } ?>
                                     <div class="col-12">
                                         <div class="mb-2">
                                             <label class="form-label">Username</label>
@@ -80,7 +97,13 @@ $api_url=$protocol.$_SERVER['HTTP_HOST'].dirname($_SERVER['SCRIPT_NAME']).'';
                                                     <!-- <a class="text-secondary" href="auth-password-reset.html">Forgot Password?</a> -->
                                                 </span>
                                             </div>
-                                            <input type="password" name="password" class="form-control form-control-lg" placeholder="***************">
+                                            <div class="input-group">
+                                                <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="***************">
+                                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <!-- <input type="password" name="password" class="form-control form-control-lg" placeholder="***************"> -->
                                         </div>
                                     </div>
                                     <!-- <div class="col-12">
@@ -131,4 +154,22 @@ $api_url=$protocol.$_SERVER['HTTP_HOST'].dirname($_SERVER['SCRIPT_NAME']).'';
             });
         </script>
     <?php endif; ?>
+
+
+    <script>
+    document.getElementById("togglePassword").addEventListener("click", function () {
+        let passwordInput = document.getElementById("password");
+        let icon = this.querySelector("i");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+    });
+</script>
 </html>

@@ -14,15 +14,15 @@ if($_SESSION['user_type'] == 'user'){
             </div>
         </div> <!-- Row end  -->
         <div class="row align-items-center">
-            <div class="col-md-3">
-                <label>From Date:</label>
+            <div class="col-md-2">
+                <label class="form-label">From Date:</label>
                 <input type="date" id="fromDate" class="form-control">
             </div>
-            <div class="col-md-3">
-                <label>To Date:</label>
+            <div class="col-md-2">
+                <label class="form-label">To Date:</label>
                 <input type="date" id="toDate" class="form-control">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Delivered Status:</label>
                 <select class="form-select" aria-label="Default select example" name="status" id="status">
                     <option value="2">All</option>
@@ -30,7 +30,33 @@ if($_SESSION['user_type'] == 'user'){
                     <option value="0" selected>Pending</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <label class="form-label">Name:</label>
+                <input type="text" id="cname" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Phone:</label>
+                <input type="number" id="mobile" class="form-control">
+            </div>
+            <?php if($_SESSION['user_type'] !== 'user'){ ?>
+            <div class="col-md-2">
+                <label class="form-label">Store:</label>
+                <select class="form-select" aria-label="" id="store" required>
+                    <?php foreach ($stores as $stores) { ?>
+                    <option value="<?php echo $stores->storeId; ?>"><?php echo $stores->store_name; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+        <?php } ?>
+            <div class="col-md-1">
+                <div class="form-check-inline mt-3">
+                    <input class="form-check-input" type="checkbox" name="allreport" value="1" id="allreport" >
+                    <label class="form-check-label" for="allreport">
+                        All Report
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-1">
                 <button id="filterBtn" class="btn btn-primary mt-4">Filter</button>
             </div>
         </div>
@@ -109,129 +135,135 @@ if($_SESSION['user_type'] == 'user'){
     }
 </script>
 <script>
-       $(document).ready(function() {
+    $(document).ready(function () {
+        const today = new Date().toISOString().split('T')[0];
 
-        const today = new Date();
-        const formattedToday = today.toISOString().split('T')[0];
-        $('#fromDate').val(formattedToday);
-        $('#toDate').val(formattedToday);
-        const status = $('#status').val();
+        $('#fromDate').val(today);
+        $('#toDate').val(today);
 
-        // Function to load the sales report by date
-        function loadSalesReport(fromDate, toDate, status) {
-            $.ajax({
+        var table = $('#myDataTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
                 url: '<?php echo base_url(); ?>/get-sales-report-by-date',
                 type: 'POST',
-                data: { from_date: fromDate, to_date: toDate, status: status },
-                success: function(response) {
-                    const session = "<?= $_SESSION['user_type']; ?>";
-                    let rows = '';
-                    let overalltotal = 0;
-                    let paidTotal = 0; 
-                    let balanceTotal = 0;
-                    const baseUrl = "<?php echo base_url(); ?>";
-
-                    // Loop through the filtered report and create table rows
-                    response.forEach((value, index) => {
-                        rows += `
-                            <tr>
-                                <td>#${index + 1}</td>
-                                <td><strong>${value.invoice_no}</strong></td>
-                                <td>
-                               ${new Date(value.invoice_date).toLocaleDateString('en-GB', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric',
-                                  })}
-                                </td>
-                                <td><strong>${value.customer_name}</strong></td>
-                                <td>${value.phone}</td>
-                                <td>${value.email}</td>
-                                <td>${value.total_amount}</td>
-                                <td>${value.totalPaid}</td>
-                                <td>${(value.total_amount - value.totalPaid).toFixed(2)}</td>
-
-                                <td>
-                                    <span class="badge ${value.delivered == 1 ? 'bg-success' : 'bg-danger'}">
-                                        ${value.delivered == 1 ? 'Delivered' : 'Not Delivered'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group" aria-label="Basic outlined example">
-                                        <a href="<?php echo base_url(); ?>/invoice-print/${value.master_id}" type="button" class="btn btn-outline-secondary" title="Print"><i class="icofont-print text-success"></i></a>
-                                        ${value.phone !== '' ?
-                                        `<a href="https://wa.me/${value.phone}?text=${encodeURIComponent(`Thank you for your purchase! Your total bill amount is ${value.total_amount}. Here is your invoice link: ${baseUrl}/invoice-whatsapp/${value.master_id}`)}" type="button" class="btn btn-outline-success" title="WhatsApp" target="_blank">
-                                           <i class="icofont-whatsapp text-success"></i>
-                                        </a>` : ''}
-
-                                        <a href="<?php echo base_url(); ?>/invoice-view/${value.master_id}" type="button" class="btn btn-outline-secondary" title="View">View</a>
-                                        ${session == 'admin' ?
-                                        `<button onclick="confirmDelete('<?php echo base_url(); ?>/delete-invoice/${value.master_id}')" class="btn btn-outline-secondary deleterow" title="Delete" ${value.delivered == 1 ? 'disabled' : ''}>
-                                                Delete
-                                            </button>`: ''}
-                                        <a href="javascript:void(0);" type="button" class="btn btn-outline-secondary invoice-mail" title="Mail" data-id="${value.master_id}">Mail</a>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                        overalltotal += parseFloat(value.total_amount || 0);
-                        paidTotal += parseFloat(value.totalPaid || 0);
-                        balanceTotal += parseFloat(value.total_amount - value.totalPaid || 0);
-
-                    });
-
-                    // Update the table body with the filtered rows
-                    $('#myDataTable tbody').html(rows);
-                    $('#overalltotal').text(overalltotal.toFixed(2));
-                    $('#paidTotal').text(paidTotal.toFixed(2));
-                    $('#balanceTotal').text(balanceTotal.toFixed(2));
-                    
+                data: function (d) {
+                    d.from_date = $('#fromDate').val();
+                    d.to_date = $('#toDate').val();
+                    d.status = $('#status').val();
+                    d.store = $('#store').val();
+                    d.mobile = $('#mobile').val();
+                    d.cname = $('#cname').val();
+                    d.allreport = $('#allreport').prop('checked') ? 1 : 0;
                 },
-                error: function(xhr, status, error) {
-                    console.log("An error occurred while fetching the data.");
+                dataSrc: function (json) {
+                    // console.log(json); 
+                    if (!json.overalltotal || isNaN(json.overalltotal)) json.overalltotal = 0;
+                    if (!json.paidTotal || isNaN(json.paidTotal)) json.paidTotal = 0;
+                    if (!json.balanceTotal || isNaN(json.balanceTotal)) json.balanceTotal = 0;
+
+                    // Update totals in the footer
+                    $('#overalltotal').text(parseFloat(json.overalltotal).toFixed(2));
+                    $('#paidTotal').text(parseFloat(json.paidTotal).toFixed(2));
+                    $('#balanceTotal').text(parseFloat(json.balanceTotal).toFixed(2));
+
+                    return json.data; // Return table data
                 }
-            });
-        }
-
-        // Load today's data on page load
-        loadSalesReport(formattedToday, formattedToday, status);
-
-        $('#filterBtn').on('click', function(e) {
-            e.preventDefault();
-
-            const fromDate = $('#fromDate').val();
-            const toDate = $('#toDate').val();
-            const status = $('#status').val();
-
-            // Load the sales report based on selected dates
-            loadSalesReport(fromDate, toDate, status);
-        });
-
-
-
-
-        var t = $('#myDataTable').DataTable({
-            responsive: true,
-            columnDefs: [
-                { targets: [-1, -3], className: 'dt-body-right' }
+            },
+            columns: [
+                { data: null, render: function (data, type, row, meta) { return meta.row + 1; }, title: "Slno" },
+                { 
+                    data: "invoice_no",
+                    render: function (data, type, row) {
+                        return `<strong>${data}</strong>`;
+                    }
+                },
+                { 
+                    data: "invoice_date", 
+                    render: function (data, type, row) {
+                        return new Date(data).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        });
+                    }
+                },
+                { 
+                    data: "customer_name",
+                    render: function (data, type, row) {
+                        return `<strong>${data}</strong>`;
+                    }
+                },
+                { data: "phone" },
+                { data: "email" },
+                { data: "total_amount" },
+                { data: "totalPaid" },
+                { 
+                    data: null, // No direct property
+                    render: function (data, type, row) {
+                        let totalAmount = parseFloat(row.total_amount) || 0; // Ensure a valid number
+                        let totalPaid = parseFloat(row.totalPaid) || 0; // Ensure a valid number
+                        let balance = totalAmount - totalPaid;
+                        return balance.toFixed(2); // Format to 2 decimal places
+                    },
+                    title: "Balance"
+                },
+                { data: "delivered" },
+                { data: "action" }
             ],
-            "columnDefs": [{
-                "targets": 0, // Adjust if your serial number column is not the first one
-                "orderable": false // Disable sorting for the serial number column
-            }],
-            "order": [], // Disable initial sorting
-            "pageLength": 10, // Set the number of rows per page (here it's 10)
-            "drawCallback": function(settings) {
+            columnDefs: [
+                { targets: [0, -1], orderable: false },
+                { 
+                    targets: 9, 
+                    render: function (data, type, row) {
+                        return `<span class="badge ${row.delivered == 1 ? 'bg-success' : 'bg-danger'}">
+                                    ${row.delivered == 1 ? 'Delivered' : 'Not Delivered'}
+                                </span>`;
+                    }
+                },
+
+                { targets: 10, render: function (data, type, row) {
+                    const baseUrl = "<?php echo base_url(); ?>";
+                    return `
+                        <div class="btn-group">
+                            <a href="<?php echo base_url(); ?>/invoice-print/${row.master_id}" class="btn btn-outline-secondary" title="Print">
+                                <i class="icofont-print text-success"></i>
+                            </a>
+
+                            ${row.phone !== '' ?
+                            `<a href="https://wa.me/${row.phone}?text=${encodeURIComponent(`Thank you for your purchase! Your total bill amount is ${row.total_amount}. Here is your invoice link: ${baseUrl}/invoice-whatsapp/${row.master_id}`)}" type="button" class="btn btn-outline-success" title="WhatsApp" target="_blank">
+                               <i class="icofont-whatsapp text-success"></i>
+                            </a>` : ''}
+
+
+                            <a href="<?php echo base_url(); ?>/invoice-view/${row.master_id}" class="btn btn-outline-secondary" title="View">View</a>
+                            <?php if ($_SESSION['user_type'] == 'super admin') { ?>
+                                <button onclick="confirmDelete('<?php echo base_url(); ?>/delete-invoice/${row.master_id}')" class="btn btn-outline-secondary" title="Delete" ${row.delivered == 1 ? 'disabled' : ''}>
+                                    Delete
+                                </button>
+                            <?php } ?>
+                            <a href="javascript:void(0);" class="btn btn-outline-secondary invoice-mail" title="Mail" data-id="${row.master_id}">Mail</a>
+                        </div>
+                    `;
+                }}
+            ],
+            order: [],
+            pageLength: 10,
+            drawCallback: function(settings) {
                 var api = this.api();
-                var start = api.page.info().start; // Get the index of the first row on the current page
-                api.column(0, { // Assuming serial number is in the first column (index 0)
-                    "order": 'applied'
-                }).nodes().each(function(cell, i) {
-                    cell.innerHTML = start + i + 1; // Correctly calculate the serial number for each page
+                var start = api.page.info().start;
+                api.column(0, { order: 'applied' }).nodes().each(function(cell, i) {
+                    cell.innerHTML = start + i + 1;
                 });
             }
         });
+
+        $('#filterBtn').on('click', function (e) {
+            e.preventDefault();
+            table.ajax.reload();
+        });
     });
+
 
 
 

@@ -14,6 +14,45 @@ if($_SESSION['user_type'] == 'user'){
                 </div>
             </div>
         </div> <!-- Row end  -->
+        <div class="row align-items-center">
+            <div class="col-md-2">
+                <label>From Date:</label>
+                <input type="date" id="fromDate" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>To Date:</label>
+                <input type="date" id="toDate" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>Customer:</label>
+                <input type="text" id="cname" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>Mobile:</label>
+                <input type="number" id="mobile" class="form-control">
+            </div>
+            <?php if($_SESSION['user_type'] !== 'user'){ ?>
+            <div class="col-md-2">
+                <label class="form-label">Store:</label>
+                <select class="form-select" aria-label="" id="store" required>
+                    <?php foreach ($stores as $stores) { ?>
+                    <option value="<?php echo $stores->storeId; ?>"><?php echo $stores->store_name; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+        <?php } ?>
+            <div class="col-md-2">
+                <div class="form-check-inline mt-3">
+                    <input class="form-check-input" type="checkbox" name="allreport" value="1" id="allreport" >
+                    <label class="form-check-label" for="allreport">
+                        All Report
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button id="filterBtn" class="btn btn-primary mt-4">Filter</button>
+            </div>
+        </div>
         <div class="row g-3 mb-3">
             <div class="col-md-12">
                 <div class="card">
@@ -29,27 +68,7 @@ if($_SESSION['user_type'] == 'user'){
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php 
-                                  $n=1;
-                                  foreach ($eyetest as $value) { ?>
-                                <tr>
-                                    <td>#<?= $n++; ?></td>
-                                    <td><strong><?= $value->Testno; ?></strong></td>
-                                    <td><?= date('d/M/Y',strtotime($value->Test_date)); ?></td>
-                                    <td><strong><?= $value->CustomerName; ?></strong></td>
-                                    <td><?= $value->MobileNo1; ?></td>
-                                    <td>
-                                        <div class="btn-group" role="group" aria-label="Basic outlined example">
-                                            <a href="<?php echo base_url(); ?>/edit-eye-test/<?php echo $value->EyeTestId;?>" class="btn btn-outline-secondary" title="Edit"><i class="icofont-edit text-success"></i></a>
-                                            <a href="javascript:void(0);" onclick="confirmDelete('<?php echo base_url(); ?>/delete-eye-test/<?php echo $value->EyeTestId;?>')" class="btn btn-outline-secondary deleterow" title="Delete">
-                                                <i class="icofont-ui-delete text-danger"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php } ?>
-                                
+                            <tbody> 
                             </tbody>
                         </table>
                     </div>
@@ -89,27 +108,68 @@ if($_SESSION['user_type'] == 'user'){
     }
 </script>
 <script>
-       $(document).ready(function() {
-        var t = $('#myDataTable').DataTable({
-            responsive: true,
-            columnDefs: [
-                { targets: [-1, -3], className: 'dt-body-right' }
+    $(document).ready(function() {
+        const today = new Date().toISOString().split('T')[0];
+
+        $('#fromDate').val(today);
+        $('#toDate').val(today);
+
+        var table = $('#myDataTable').DataTable({
+            processing: true,
+            serverSide: true, // Enable server-side processing
+            ajax: {
+                url: '<?php echo base_url(); ?>/get-eye-test-by-date', // API URL
+                type: 'POST',
+                data: function(d) {
+                    d.from_date = $('#fromDate').val();
+                    d.to_date = $('#toDate').val();
+                    d.cname = $('#cname').val();
+                    d.mobile = $('#mobile').val();
+                    d.store = $('#store').val();
+                    d.allreport = $('#allreport').prop('checked') ? 1 : 0;
+                }
+            },
+            columns: [
+                { data: null, orderable: false }, // Serial Number
+                { data: 'Testno' },
+                { data: 'Test_date', render: function(data) {
+                    return new Date(data).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                }},
+                { data: 'CustomerName' },
+                { data: 'MobileNo1' },
+                { data: 'EyeTestId', orderable: false, render: function(data) {
+                    return `
+                        <div class="btn-group" role="group">
+                            <a href="<?php echo base_url(); ?>/edit-eye-test/${data}" class="btn btn-outline-secondary" title="Edit">
+                                <i class="icofont-edit text-success"></i>
+                            </a>
+                            <a href="javascript:void(0);" onclick="confirmDelete('<?php echo base_url(); ?>/delete-eye-test/${data}')" class="btn btn-outline-secondary deleterow" title="Delete">
+                                <i class="icofont-ui-delete text-danger"></i>
+                            </a>
+                        </div>
+                    `;
+                }}
             ],
-            "columnDefs": [{
-                "targets": 0, // Adjust if your serial number column is not the first one
-                "orderable": false // Disable sorting for the serial number column
-            }],
-            "order": [], // Disable initial sorting
-            "pageLength": 10, // Set the number of rows per page (here it's 10)
-            "drawCallback": function(settings) {
+            order: [], // No default sorting
+            pageLength: 10, // Number of rows per page
+            drawCallback: function(settings) {
                 var api = this.api();
-                var start = api.page.info().start; // Get the index of the first row on the current page
-                api.column(0, { // Assuming serial number is in the first column (index 0)
-                    "order": 'applied'
-                }).nodes().each(function(cell, i) {
-                    cell.innerHTML = start + i + 1; // Correctly calculate the serial number for each page
+                var start = api.page.info().start;
+                api.column(0, { order: 'applied' }).nodes().each(function(cell, i) {
+                    cell.innerHTML = start + i + 1;
                 });
             }
         });
+
+        // Reload DataTable on Filter Click
+        $('#filterBtn').on('click', function(e) {
+            e.preventDefault();
+            table.ajax.reload(); // Reload data
+        });
     });
+
     </script>

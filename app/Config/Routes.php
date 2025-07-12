@@ -32,8 +32,12 @@ $routes->setAutoRoute(true);
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Frontpage::index');
+$routes->get('admin', 'Frontpage::SuperAdmin');
 
 $routes->post('login', 'Frontpage::AdminLogin');
+$routes->post('app-login', 'Frontpage::login');
+$routes->get('stores', 'Frontpage::Stores');
+
 $routes->get('logout', 'Frontpage::AdminLogout');
 $routes->get('dashboard', 'Frontpage::Dashboard');
 
@@ -82,6 +86,7 @@ $routes->post('update-lens-creation', 'LensCreation::UpdateLens');
 $routes->get('delete-lens-creation/(:num)', 'LensCreation::LensDelete/$1');
 
 $routes->get('eye-test', 'EyeTest::index');
+$routes->post('get-eye-test-by-date', 'EyeTest::getEyetestByDate');
 $routes->get('add-eye-test/(:num)', 'EyeTest::eyeTests/$1');
 $routes->post('save-eye-test', 'EyeTest::SaveEyeTest');
 $routes->get('edit-eye-test/(:num)', 'EyeTest::EyeTestEdit/$1');
@@ -95,6 +100,7 @@ $routes->get('customers-list', 'EyeTest::CustomersList');
 $routes->get('edit-customer/(:num)', 'EyeTest::CustomerEdit/$1');
 $routes->post('update-customer', 'EyeTest::UpdateCustomer');
 $routes->get('delete-customer/(:num)', 'EyeTest::CustomerDelete/$1');
+
 
 $routes->get('sales', 'Sales::index');
 $routes->get('get-sales-data-by-barcode', 'Sales::getSalesDataByBarcode');
@@ -135,6 +141,13 @@ $routes->get('get-lens-warranty', 'Sales::getLensWarranty');
 $routes->get('get-color-wise-stock', 'Sales::getColorWiseStock');
 $routes->get('stock-report', 'Sales::StockReport');
 $routes->post('get-stock-report-by-filter', 'Sales::getStockReport');
+$routes->post('get-eyetest-users', 'Sales::getEyetestUsers');
+$routes->get('get-lens-cleaner-details', 'Sales::getLensCleanerDetails');
+$routes->get('get-coating-details', 'Sales::GetCoatingDetails');
+$routes->get('customer-review-report', 'Sales::CustomerReviewReport');
+$routes->post('get-customer-review-report-by-date', 'Sales::CustomerReviewReportByDate');
+$routes->post('save-medicalrecord', 'Sales::SaveMedicalRecord');
+
 
 $routes->get('lens-coating', 'LensCoating::index');
 $routes->get('add-lens-coating', 'LensCoating::LensCoatings');
@@ -149,7 +162,7 @@ $routes->post('save-previlage', 'PrevilageCard::SavePrevilage');
 $routes->post('update-previlage', 'PrevilageCard::UpdatePrevilage');
 $routes->get('delete-previlage/(:num)', 'PrevilageCard::PrevilageDelete/$1');
 $routes->post('save-previlage-data', 'PrevilageCard::SavePrevilageData');
-$routes->get('get-previlage-users', 'PrevilageCard::getPrevilageUsers');
+$routes->post('get-previlage-users', 'PrevilageCard::getPrevilageUsers');
 
 $routes->get('previlage-card-types', 'PrevilageCard::PrevilageCardTypes');
 $routes->get('get-previlage-types', 'PrevilageCard::getPrevilageTypeDetails');
@@ -175,6 +188,7 @@ $routes->post('save-user', 'User::SaveUser');
 $routes->get('edit-user/(:num)', 'User::UserEdit/$1');
 $routes->post('update-user', 'User::UpdateUser');
 $routes->get('delete-user/(:num)', 'User::UserDelete/$1');
+$routes->post('check-username', 'User::checkUsername');
 
 $routes->get('breakage-warranty', 'BreakageWarranty::index');
 $routes->get('add-breakage-warranty', 'BreakageWarranty::BreakageWarrantyForm');
@@ -183,13 +197,62 @@ $routes->get('edit-breakage-warranty/(:num)', 'BreakageWarranty::BreakageWarrant
 $routes->post('update-breakage-warranty', 'BreakageWarranty::UpdateBreakageWarranty');
 $routes->get('delete-breakage-warranty/(:num)', 'BreakageWarranty::BreakageWarrantyDelete/$1');
 $routes->get('get-breakage-warranty', 'BreakageWarranty::getBreakageWarranty');
+$routes->post('get-warranty-rate', 'BreakageWarranty::getWarrantyRate');
 
 $routes->get('upi-details', 'Settings::index');
 $routes->post('update-upi', 'Settings::UpdateUpi');
 $routes->get('get-upi-details', 'Settings::GetUpiDetailsData');
 
+$routes->get('purchase', 'Purchase::index');
+$routes->post('get-colors', 'Purchase::GetColors');
+$routes->post('save-purchase', 'Purchase::SavePurchase');
+$routes->get('purchase-list', 'Purchase::PurchaseList');
+$routes->post('get-purchase-report-by-date', 'Purchase::getPurchaseReportByDate');
+$routes->get('edit-purchase/(:num)', 'Purchase::EditPurchase/$1');
+$routes->post('update-purchase', 'Purchase::UpdatePurchase');
+$routes->get('delete-purchase/(:num)', 'Purchase::DeletePurchase/$1');
 
-/*
+$routes->get('stock-transfer', 'StockTransfer::index');
+$routes->post('stock-tranfer-colors', 'StockTransfer::GetColors');
+$routes->post('save-stock-transfer', 'StockTransfer::SaveStockTransfer');
+$routes->get('stock-transfer-list', 'StockTransfer::StockTransferList');
+$routes->post('get-transfer-report-by-date', 'StockTransfer::getTransferReportByDate');
+$routes->get('edit-transfer/(:num)', 'StockTransfer::EditStockTransfer/$1');
+$routes->post('update-stock-tranfer', 'StockTransfer::UpdateStockTransfer');
+$routes->get('delete-transfer/(:num)', 'StockTransfer::DeleteStockTransfer/$1');
+
+$routes->get('questions', 'ReviewQuestions::index');
+$routes->get('add-questions', 'ReviewQuestions::QuestionsAdd');
+$routes->post('save-questions', 'ReviewQuestions::SaveQuestions');
+$routes->get('edit-question/(:num)', 'ReviewQuestions::EditQuestions/$1');
+$routes->post('update-questions', 'ReviewQuestions::UpdateQuestions');
+$routes->get('delete-question/(:num)', 'ReviewQuestions::DeleteQuestions/$1');
+$routes->get('customer-review', 'ReviewQuestions::CustomerReview');
+$routes->post('save-review', 'ReviewQuestions::SaveReviews');
+$routes->get('saved-reviews', 'ReviewQuestions::SavedReviews');
+$routes->post('get-saved-review-report-by-date', 'ReviewQuestions::SavedReviewsReportByDate');
+$routes->get('view-review/(:num)', 'ReviewQuestions::ViewReview/$1');
+$routes->get('delete-review/(:num)', 'ReviewQuestions::DeleteReview/$1');
+$routes->get('salesman-review-report', 'ReviewQuestions::SalesmanReviewReport');
+$routes->post('get-salesman-review-report-by-date', 'ReviewQuestions::SalesmanReviewReportByDate');
+
+
+$routes->get('checklists', 'CheckList::index');
+$routes->get('add-checklist', 'CheckList::CheckListAdd');
+$routes->post('save-checklist', 'CheckList::SaveCheckList');
+$routes->get('edit-checklist/(:num)', 'CheckList::EditCheckList/$1');
+$routes->post('update-checklist', 'CheckList::UpdateCheckList');
+$routes->get('delete-checklist/(:num)', 'CheckList::DeleteCheckList/$1');
+$routes->get('checklist-form', 'CheckList::ChecklistForm');
+$routes->get('get-checklist-questions', 'CheckList::getChecklistQuestions');
+$routes->post('insert-checklist', 'CheckList::InsertCheckLists');
+$routes->get('checklist-report', 'CheckList::ChecklistReport');
+$routes->post('get-checklist-report-by-date', 'CheckList::ChecklistReportByDate');
+$routes->get('view-checklist/(:num)', 'CheckList::ViewCheckList/$1');
+$routes->get('checklists-delete/(:num)', 'CheckList::checklistsDelete/$1');
+
+
+/*`
  * --------------------------------------------------------------------
  * Additional Routing
  * --------------------------------------------------------------------

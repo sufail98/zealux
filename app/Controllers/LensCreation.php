@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Models\LensCreationModel;
 use App\Models\LensFeaturesModel;
 use App\Models\LensModel;
+use App\Models\LensCoatingModel;
 
 
 class LensCreation extends BaseController
@@ -13,6 +14,7 @@ class LensCreation extends BaseController
 	{
 		$this->lenscreationModel = new LensCreationModel();
 		$this->lensfeaturesModel = new LensFeaturesModel();
+		$this->lensCoatingModel = new LensCoatingModel();
 		$this->lensModel = new LensModel();
 	}
 
@@ -32,6 +34,7 @@ class LensCreation extends BaseController
 		$session = session();
 		if(!empty($_SESSION['user'])){
 			$data['features'] = $this->lensfeaturesModel->AllLensFeatures();
+			$data['coating'] = $this->lensCoatingModel->AllLensCoating();
 			$data['lens'] = $this->lensModel->AllLenses();
 			return view('lens_creation',$data);
 		} else {
@@ -53,6 +56,8 @@ class LensCreation extends BaseController
 			$data['warranty_days'] = $this->request->getPost('warranty');
 			$feature = $this->request->getPost('features');
 			$data['lensFeaturesId'] = is_array($feature) ? implode(',', $feature) : NULL; 
+			$coating = $this->request->getPost('coating');
+			$data['lensCoatingId'] = is_array($coating) ? implode(',', $coating) : NULL; 
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
 
 			$insertid = $this->lenscreationModel->InsertLensMdl($data);
@@ -75,6 +80,7 @@ class LensCreation extends BaseController
 		$session = session();
 		if(!empty($_SESSION['user'])){
 			$data['features'] = $this->lensfeaturesModel->AllLensFeatures();
+			$data['coating'] = $this->lensCoatingModel->AllLensCoating();
 			$data['editdata'] = $this->lenscreationModel->LensEditMdl($id);
 			$data['lens'] = $this->lensModel->AllLenses();
 			return view('lens_creation_edit',$data);
@@ -96,6 +102,8 @@ class LensCreation extends BaseController
 			$data['warranty_days'] = $this->request->getPost('warranty');
 			$feature = $this->request->getPost('features');
 			$data['lensFeaturesId'] = is_array($feature) ? implode(',', $feature) : NULL; 
+			$coating = $this->request->getPost('coating');
+			$data['lensCoatingId'] = is_array($coating) ? implode(',', $coating) : NULL;
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
 			$data['lensId'] = $this->request->getPost('lid');
 

@@ -37,6 +37,7 @@
                     </span>
                 </a>
                 <?php 
+                $session = session();
                 $currentUri = service('uri');
                 $currentSegment = $currentUri->getSegment(1);
                 $MastersActive = in_array($currentSegment, ['groups','feature','lens','lens-feature','size','previlage-cards']);
@@ -48,7 +49,7 @@
 
                 ?>
                 <ul class="menu-list flex-grow-1 mt-3">
-                    <li><a class="m-link <?= $currentSegment == 'dashboard' ? 'active' : ''; ?>" href="<?php echo base_url(); ?>/dashboard"><i class="icofont-home fs-5"></i> <span>Dashboard</span></a></li>
+                    <li><a class="m-link <?= $currentSegment == 'dashboard' ? 'active' : ''; ?>" href="<?php echo base_url(); ?>/dashboard"><i class="icofont-ui-cart fs-5"></i> <span>Sales</span></a></li>
                     <li class="collapsed">
                         <a class="m-link <?= $MastersActive ? 'active' : ''; ?>" data-bs-toggle="collapse" data-bs-target="#categories" href="#">
                             <i class="icofont-chart-flow fs-5"></i> <span>Masters</span> <span class="arrow icofont-rounded-down ms-auto text-end fs-5"></span></a>
@@ -73,7 +74,7 @@
                                 
                             </ul>
                     </li>
-                    <li class="collapsed">
+                    <!-- <li class="collapsed">
                         <a class="m-link <?= $Reports ? 'active' : ''; ?>" data-bs-toggle="collapse" data-bs-target="#reports" href="#">
                             <i class="icofont-page fs-5"></i> <span>Reports</span> <span class="arrow icofont-rounded-down ms-auto text-end fs-5"></span></a>
                             <ul class="sub-menu collapse <?= $Reports ? 'show' : ''; ?>" id="reports">
@@ -81,9 +82,12 @@
                                 <li><a class="ms-link <?= $currentSegment == 'daily-collection-report' ? 'active' : ''; ?>" href="<?php echo base_url(); ?>/daily-collection-report">Daily Collection Report</a></li>
                                 
                             </ul>
-                    </li>
+                    </li> -->
                     <li><a class="m-link <?= $currentSegment == 'sales-return' ? 'active' : ''; ?>" href="<?php echo base_url(); ?>/sales-return"><i class="fa fa-retweet fs-5"></i> <span>Sales Return</span></a></li>
-                    <li><a class="m-link" href="<?php echo base_url(); ?>/logout"><i class="icofont-logout fs-5"></i> <span>Signout</span></a></li>
+                    <li><a class="m-link <?= $currentSegment == 'checklist-form' ? 'active' : ''; ?>" href="<?php echo base_url(); ?>/checklist-form"><i class="icofont-tasks fs-5"></i> <span>Check List</span></a></li>
+
+
+                    <li><a class="m-link" href="javascript:void(0);" onclick="clearStorageAndRedirect('<?php echo base_url(); ?>/logout')"><i class="icofont-logout fs-5"></i> <span>Signout</span></a></li>
 
                 </ul>
                 <!-- Menu: menu collepce btn -->
@@ -106,8 +110,8 @@
                             
                             <div class="dropdown user-profile ml-2 ml-sm-3 d-flex align-items-center zindex-popover">
                                 <div class="u-info me-2">
-                                    <p class="mb-0 text-end line-height-sm "><span class="font-weight-bold text-white">User </span></p>
-                                    <small class="text-white">User Profile</small>
+                                    <p class="mb-0 text-end line-height-sm "><span class="font-weight-bold text-white text-capitalize"><?= $session->get('user'); ?> </span></p>
+                                    <small class="text-white text-capitalize"><?= $session->get('user_type'); ?> Profile</small>
                                 </div>
                                 <a class="nav-link dropdown-toggle pulse p-0" href="#" role="button" data-bs-toggle="dropdown" data-bs-display="static">
                                     <img class="avatar lg rounded-circle img-thumbnail" src="<?php echo base_url(); ?>/assets/images/profile_av.svg" alt="">
@@ -118,8 +122,8 @@
                                             <div class="d-flex py-1">
                                                 <img class="avatar rounded-circle" src="<?php echo base_url(); ?>/assets/images/profile_av.svg" alt="">
                                                 <div class="flex-fill ms-3">
-                                                    <p class="mb-0"><span class="font-weight-bold">User</span></p>
-                                                    <small class="">User</small>
+                                                    <p class="mb-0"><span class="font-weight-bold text-capitalize"><?= $session->get('user'); ?></span></p>
+                                                    <small class="text-capitalize"><?= $session->get('user_type'); ?> Profile</small>
                                                 </div>
                                             </div>
                                             
@@ -128,14 +132,14 @@
                                         <div class="list-group m-2 ">
                                             <!-- <a href="admin-profile.html" class="list-group-item list-group-item-action border-0 "><i class="icofont-ui-user fs-5 me-3"></i>Profile Page</a> -->
                                             <!-- <a href="order-invoices.html" class="list-group-item list-group-item-action border-0 "><i class="icofont-file-text fs-5 me-3"></i>Order Invoices</a> -->
-                                            <a href="<?php echo base_url(); ?>/logout" class="list-group-item list-group-item-action border-0 "><i class="icofont-logout fs-5 me-3"></i>Signout</a>
+                                            <a href="javascript:void(0);" onclick="clearStorageAndRedirect('<?php echo base_url(); ?>/logout')" class="list-group-item list-group-item-action border-0 "><i class="icofont-logout fs-5 me-3"></i>Signout</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="setting ms-2">
+                           <!--  <div class="setting ms-2">
                                 <a href="#" data-bs-toggle="modal" data-bs-target="#Settingmodal"><i class="icofont-gear-alt fs-5 text-white"></i></a>
-                            </div>
+                            </div> -->
                         </div>
         
                         <!-- menu toggler -->
@@ -161,13 +165,20 @@
                                 <input type="search" class="form-control" placeholder="Search" aria-label="search" aria-describedby="addon-wrapping" id="product_search">
                                 <button type="button" class="input-group-text" id="addon-wrapping"><i class="fa fa-search"></i></button>
                             </div>
-                            <a href="<?php echo base_url(); ?>/sales" class="mb-0 brand-icon mt-3 ms-2 <?= ($currentSegment == 'sales' || $currentSegment == 'get-product-details') ? '' : 'd-none'; ?>">
+                           <!--  <a href="<?php echo base_url(); ?>/sales" class="mb-0 brand-icon mt-3 ms-2 <?= ($currentSegment == 'sales' || $currentSegment == 'get-product-details') ? '' : 'd-none'; ?>">
                                 <span class="logo-icon">
                                     <i class="icofont-plus-circle fs-5 text-white "> Add New</i>
                                 </span>
-                            </a>
+                            </a> -->
                         </div>
         
                     </div>
                 </nav>
             </div>
+
+<script>
+   function clearStorageAndRedirect(url) {
+      localStorage.clear();
+      window.location.href = url;
+   }
+</script>

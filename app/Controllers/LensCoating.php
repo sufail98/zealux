@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Models\LensCoatingModel;
+use App\Models\LensFeaturesModel;
 
 class LensCoating extends BaseController
 {
@@ -9,6 +10,8 @@ class LensCoating extends BaseController
     function __construct()
 	{
 		$this->lensCoatingModel = new LensCoatingModel();
+		$this->lensfeaturesModel = new LensFeaturesModel();
+
 	}
 
 	public function index()
@@ -26,7 +29,8 @@ class LensCoating extends BaseController
 	{
 		$session = session();
 		if(!empty($_SESSION['user'])){
-			return view('lens_coating');
+			$data['features'] = $this->lensfeaturesModel->AllLensFeatures();
+			return view('lens_coating',$data);
 		} else {
 			return view('login');
 		}
@@ -42,20 +46,22 @@ class LensCoating extends BaseController
 			$data['purchase_rate'] = $this->request->getPost('purchase');
 			$data['description'] = $this->request->getPost('desc');
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
+			$feature = $this->request->getPost('features');
+			$data['lensFeaturesId'] = is_array($feature) ? implode(',', $feature) : NULL; 
 
-			if(empty($_FILES['coatimage']['name']))
-			{
-				$session->setFlashdata('alert', 'warning|Oops...|Please Select Image!');
-            	return redirect()->to('add-lens-coating');
-			}
-			$file=$this->request->getFile('coatimage');
-			$name = $file->getRandomName();
-			$data['image'] = $name;
+			// if(empty($_FILES['coatimage']['name']))
+			// {
+			// 	$session->setFlashdata('alert', 'warning|Oops...|Please Select Image!');
+            // 	return redirect()->to('add-lens-coating');
+			// }
+			// $file=$this->request->getFile('coatimage');
+			// $name = $file->getRandomName();
+			// $data['image'] = $name;
 
 			$insertid = $this->lensCoatingModel->InsertCoatingMdl($data);
 
 			if($insertid){
-				$file->move('./images/lenscoating', $name);
+				// $file->move('./images/lenscoating', $name);
 				$session->setFlashdata('alert', 'success|Success...|Added Successfully');
             	return redirect()->to('lens-coating');
 					
@@ -72,6 +78,7 @@ class LensCoating extends BaseController
 	{
 		$session = session();
 		if(!empty($_SESSION['user'])){
+			$data['features'] = $this->lensfeaturesModel->AllLensFeatures();
 			$data['editdata'] = $this->lensCoatingModel->CoatingEditMdl($id);
 			return view('edit_lens_coating',$data);
 		} else {
@@ -88,18 +95,21 @@ class LensCoating extends BaseController
 			$data['purchase_rate'] = $this->request->getPost('purchase');
 			$data['description'] = $this->request->getPost('desc');
 			$data['CreatedDate'] = date('Y-m-d H:i:s');
+			$feature = $this->request->getPost('features');
+			$data['lensFeaturesId'] = is_array($feature) ? implode(',', $feature) : NULL; 
 			$data['id'] = $this->request->getPost('cid');
 
-			if(empty($_FILES['coatimage']['name']))
-			{
-				$update = $this->lensCoatingModel->updateCoating($data);
-			}else{
-				$file=$this->request->getFile('coatimage');
-				$name = $file->getRandomName();
-				$data['image'] = $name;
-				$update = $this->lensCoatingModel->updateCoating($data);
-				$file->move('./images/lenscoating', $name);
-			}
+			// if(empty($_FILES['coatimage']['name']))
+			// {
+			// 	$update = $this->lensCoatingModel->updateCoating($data);
+			// }else{
+			// 	$file=$this->request->getFile('coatimage');
+			// 	$name = $file->getRandomName();
+			// 	$data['image'] = $name;
+			// 	$update = $this->lensCoatingModel->updateCoating($data);
+			// 	$file->move('./images/lenscoating', $name);
+			// }
+			$update = $this->lensCoatingModel->updateCoating($data);
 
 			if($update){
 				$session->setFlashdata('alert', 'success|Success...|Updated Successfully');

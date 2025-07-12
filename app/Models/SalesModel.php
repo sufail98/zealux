@@ -51,10 +51,11 @@ class SalesModel extends Model
 	    $query = $builder->get();
 	    return $query->getResult();
 	}
-	public function stockReportMdl($name, $barcode, $group, $model)
+	public function stockReportMdl($name, $barcode, $group, $model, $store_id)
 	{
 		$subQuery = $this->db->table('tbl_stock')
-		    ->select('pid, color, SUM(inward_qty) AS total_in, SUM(outward_qty) AS total_out')
+		    ->select('pid, color,store_id, SUM(inward_qty) AS total_in, SUM(outward_qty) AS total_out')
+		    ->where('store_id', $store_id)
 		    ->groupBy(['pid', 'color']);
 
 		$builder = $this->db->table('tbl_product p');
@@ -180,10 +181,12 @@ class SalesModel extends Model
 		$query = $builder->get();
 		return $query->getResult();
 	}
-	public function PrevilageUsers()
+	public function PrevilageUsers($query)
 	{
 		$builder = $this->db->table('tbl_previlage_card');
 		$builder->select('*');
+		$builder->like('name', $query);
+		$builder->orLike('phone', $query);
 		$query = $builder->get();
 		return $query->getResult();
 	}
@@ -260,10 +263,10 @@ class SalesModel extends Model
 	    $result = $query->getRow();
 	    return $result->maxid;
 	}
-	public function updateFrameMeasurement($eyeTestId, $frameMeasurement) {
+	public function updateFrameMeasurement($eyeTestId, $frameMeasurement, $Prescription) {
 		$builder = $this->db->table('tbl_eye_test');
 		$builder->where('EyeTestId', $eyeTestId);
-		return $builder->update(['frame_measurement' => $frameMeasurement]);
+		return $builder->update(['frame_measurement' => $frameMeasurement, 'Prescription' => $Prescription]);
 	}
 	public function SalesReportData($id)
 	{
@@ -312,32 +315,145 @@ class SalesModel extends Model
 		$totalPaid = $result[0]->totalPaid ?? 0;
 		return $totalPaid;
 	}
-	public function getSalesReport($fromDate, $toDate, $status, $user)
+	// public function getSalesReport($fromDate, $toDate, $status, $allreport, $mobile, $cname, $user)
+	// {
+	//     $builder = $this->db->table('tbl_salesmaster s');
+	// 	$builder->select('s.*, SUM(i.PaidAmount) as totalPaid');
+	// 	$builder->join('tbl_invoicereceipt i', 'i.InvoiceNo = s.invoice_no', 'left');
+	// 	if($user != 1){
+	// 		$builder->where('s.CreatedUser', $user);
+	// 	}
+
+	// 	if ($allreport != 1) {
+	// 		if($status == 1 || $status == 0){
+	// 			$builder->where('s.delivered', $status);
+	// 		}
+
+	// 		if ($fromDate && $toDate) {
+	// 		    $builder->where('s.invoice_date >=', $fromDate);
+	// 		    $builder->where('s.invoice_date <=', $toDate);
+	// 		}
+	// 	}else{
+	// 		if (!empty($mobile)) { 
+	//             $builder->like('s.phone', $mobile);
+	//         }
+	//         if (!empty($cname)) {
+	//             $builder->like('s.customer_name', $cname);
+	//         }
+	// 	}
+
+	// 	$builder->groupBy('s.invoice_no'); 
+	// 	return $builder->get()->getResult();
+
+	// }
+	public function getSalesReport($fromDate, $toDate, $status, $allreport, $mobile, $cname, $user, $store_id, $start, $length)
 	{
 	    $builder = $this->db->table('tbl_salesmaster s');
-		$builder->select('s.*, SUM(i.PaidAmount) as totalPaid');
-		$builder->join('tbl_invoicereceipt i', 'i.InvoiceNo = s.invoice_no', 'left');
-		if($user != 1){
-			$builder->where('s.CreatedUser', $user);
-		}
-		if($status == 1 || $status == 0){
-			$builder->where('s.delivered', $status);
-		}
+	    $builder->select('s.*, SUM(i.PaidAmount) as totalPaid');
+	    $builder->join('tbl_invoicereceipt i', 'i.InvoiceNo = s.invoice_no', 'left');
+	    $builder->where('s.store_id', $store_id);
 
-		if ($fromDate && $toDate) {
-		    $builder->where('s.invoice_date >=', $fromDate);
-		    $builder->where('s.invoice_date <=', $toDate);
-		}
+	    // if ($_SESSION['user_type'] != 'admin' && $_SESSION['user_type'] != 'super admin') {
+	    //     $builder->where('s.CreatedUser', $user);
+	    // }
 
-		$builder->groupBy('s.invoice_no'); 
-		return $builder->get()->getResult();
+	    if ($allreport != 1) {
+	        if ($status == 1 || $status == 0) {
+	            $builder->where('s.delivered', $status);
+	        }
 
+	        if ($fromDate && $toDate) {
+	            $builder->where('s.invoice_date >=', $fromDate);
+	            $builder->where('s.invoice_date <=', $toDate);
+	        }
+	    } else {
+	        if (!empty($mobile)) {
+	            $builder->like('s.phone', $mobile);
+	        }
+	        if (!empty($cname)) {
+	            $builder->like('s.customer_name', $cname);
+	        }
+	    }
+
+	    $builder->groupBy('s.invoice_no');
+	    $builder->orderBy('master_id', 'DESC');
+	    $builder->limit($length, $start); // Apply pagination
+	    return $builder->get()->getResult();
 	}
-	public function getDeletedSalesReports($fromDate, $toDate, $user)
+
+	public function countReviewTotalRecords($fromDate, $toDate, $allreport, $user)
+	{
+	    $builder = $this->db->table('tbl_salesmaster');
+	    $builder->select('COUNT(*) as total');
+	    $builder->where('delivered', 1);
+	   // if ($_SESSION['user_type'] != 'admin' && $_SESSION['user_type'] != 'super admin') {
+	   //      $builder->where('CreatedUser', $user);
+	   //  }
+
+	    if ($allreport != 1) {
+	      $builder->where('invoice_date >=', $fromDate);
+	      $builder->where('invoice_date <=', $toDate);
+	    } 
+	    return $builder->get()->getRow()->total;
+	}
+	public function getCustomerReviewReport($fromDate, $toDate, $allreport, $user, $start, $length)
+	{
+	    $builder = $this->db->table('tbl_salesmaster');
+	    $builder->select('*');
+	    $builder->where('delivered', 1);
+
+	    // if ($_SESSION['user_type'] != 'admin' && $_SESSION['user_type'] != 'super admin') {
+	    //     $builder->where('CreatedUser', $user);
+	    // }
+
+	    if ($allreport != 1) {
+	      $builder->where('invoice_date >=', $fromDate);
+	      $builder->where('invoice_date <=', $toDate);
+	    }
+
+	    $builder->groupBy('invoice_no');
+	    $builder->orderBy('master_id', 'DESC');
+	    $builder->limit($length, $start); // Apply pagination
+	    return $builder->get()->getResult();
+	}
+
+	public function countTotalRecords($fromDate, $toDate, $status, $allreport, $mobile, $cname, $user, $store_id)
+	{
+	    $builder = $this->db->table('tbl_salesmaster');
+	    $builder->select('COUNT(*) as total');
+	    $builder->where('store_id', $store_id);
+
+	    // if ($_SESSION['user_type'] != 'admin' && $_SESSION['user_type'] != 'super admin') {
+	    //     $builder->where('CreatedUser', $user);
+	    // }
+
+	    if ($allreport != 1) {
+	        if ($status == 1 || $status == 0) {
+	            $builder->where('delivered', $status);
+	        }
+
+	        if ($fromDate && $toDate) {
+	            $builder->where('invoice_date >=', $fromDate);
+	            $builder->where('invoice_date <=', $toDate);
+	        }
+	    } else {
+	        if (!empty($mobile)) {
+	            $builder->like('phone', $mobile);
+	        }
+	        if (!empty($cname)) {
+	            $builder->like('customer_name', $cname);
+	        }
+	    }
+	    return $builder->get()->getRow()->total;
+	}
+
+	public function getDeletedSalesReports($fromDate, $toDate, $user, $store_id)
 	{
 	    $builder = $this->db->table('tbl_salesmaster_history s');
 		$builder->select('s.*, SUM(i.PaidAmount) as totalPaid');
 		$builder->join('tbl_invoicereceipt_history i', 'i.SalesMaster_historyId = s.history_id', 'left');
+		$builder->where('s.store_id', $store_id);
+
 		if($user != 1){
 			$builder->where('s.deleted_user', $user);
 		}
@@ -393,6 +509,15 @@ class SalesModel extends Model
                     ->getRow();
 		$salesmanName = $salesman ? $salesman->name : '';
 	    return $salesmanName;
+	}
+	public function getHeaderImage($store_id)
+	{
+		$store = $this->db->table('tbl_store')
+                    ->where('storeId', $store_id)
+                    ->get()
+                    ->getRow();
+		$storeImage = $store ? $store->header_image : '';
+	    return $storeImage;
 	}
 	public function updateDeliveredStatus($id) {
 		$builder = $this->db->table('tbl_salesmaster');
@@ -512,9 +637,9 @@ class SalesModel extends Model
 	{
 	    $builder = $this->db->table('tbl_salesmaster');
 		$builder->select('*');
-		if($user != 1){
-			$builder->where('CreatedUser', $user);
-		}
+		// if($user != 1){
+		// 	$builder->where('CreatedUser', $user);
+		// }
 		if(!empty($cutomer)){
 			$builder->where('customer_name', $cutomer);
 		}
@@ -608,6 +733,49 @@ class SalesModel extends Model
 		$builder = $this->db->table('tbl_sales_details');
 		$builder->where('id', $id);
 		return $builder->update(['return_status' => 1]);
+	}
+	public function getBarcode($id)
+	{
+		$query = $this->db->table('tbl_product')
+                    ->where('pid', $id)
+                    ->get()
+                    ->getRow();
+		$barcode = $query ? $query->barcode : '';
+	    return $barcode;
+	}
+
+	public function EyetestUsersMdl($query)
+	{
+		$builder = $this->db->table('tbl_eye_test');
+		$builder->select('*');
+		$builder->like('CustomerName', $query);
+		$builder->orLike('MobileNo1', $query);
+		$query = $builder->get();
+		return $query->getResult();
+	}
+
+	public function ProductDataByBarcode($barcode)
+	{
+	    return $this->db->table('tbl_product p') 
+	                    ->select('p.pid,p.barcode,p.productName,p.sales_rate,c.colorName,c.colorImage')
+	    				->join('tbl_productcolor c', 'c.pid = p.pid')
+	                    ->where('p.barcode', $barcode)
+	                    ->get()
+	                    ->getRow();  
+	}
+	public function GetCoating_Details($id)
+	{
+	    return $this->db->table('tbl_lens_creation') 
+	                    ->select('lensName,lensCoatingId')
+	                    ->where('lensId', $id)
+	                    ->get()
+	                    ->getRow();  
+	}
+	public function Coating_Data($ids) {
+	    return $this->db->table('tbl_lens_coating')
+	                    ->whereIn('id', $ids)
+	                    ->get()
+	                    ->getResult();
 	}
 
 }

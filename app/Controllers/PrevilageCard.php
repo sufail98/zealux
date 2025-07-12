@@ -165,8 +165,16 @@ class PrevilageCard extends BaseController
 		$session = session();
 		if(!empty($_SESSION['user']))
 		{
-		    $users = $this->saleModel->PrevilageUsers();;
-		    return $this->response->setJSON($users);
+
+		    $query = $this->request->getPost('query');
+
+		    if (!$query) {
+		        return $this->response->setJSON([]); 
+		    }
+
+		    $data = $this->saleModel->PrevilageUsers($query);
+		    return $this->response->setJSON($data);
+
 	    } else {
 			return view('login');
 		}

@@ -15,7 +15,7 @@
         
         <div class="row g-3 mb-3">
             
-            <div class="col-xl-12 col-lg-12">
+            <div class="col-xl-8 col-lg-8">
                 <div class="card mb-3">
                    
                     <div class="card-body">
@@ -36,17 +36,38 @@
                                 <label class="form-label">Description </label>
                                 <textarea class="form-control" placeholder="Description..." name="desc"></textarea>
                             </div>
-                            <div class="col-md-6">
+                           <!--  <div class="col-md-6">
                                 <label class="form-label">Image <span style="color: #f00; font-size: 15px;">*</span></label>
                                 <input type="file" name="coatimage" accept="image/*" class="form-control" onchange="previewImages(this)" required>
                                 <div class="image-preview d-flex mt-2" id="image-preview"></div> 
-                            </div>
+                            </div> -->
    
                             
                         </div>
                     </div>
                 </div>
                 
+            </div>
+            <div class="col-xl-4 col-lg-4">
+                <div class="sticky-lg-top">
+                    <div class="card mb-3">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom-0">
+                            <h6 class="m-0 fw-bold">Features</h6>
+                        </div>
+                        <div class="card-body">
+                            <?php foreach ($features as $features){ ?>
+                            <div class="form-check">
+                                <input class="form-check-input mt-3" type="checkbox" name="features[]" value="<?= $features->id; ?>" id="feature<?= $features->id; ?>">
+                                <img src="<?php echo base_url(); ?>/images/lensfeatures/<?= $features->image; ?>" style="height: 50px; border-radius: 50px;">
+                                <label class="form-check-label" for="feature<?= $features->id; ?>">
+                                <?= $features->description; ?>
+                                </label>
+                            </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+   
+                </div>
             </div>
             
         </div><!-- Row end  --> 

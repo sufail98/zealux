@@ -139,5 +139,18 @@ class BreakageWarranty extends BaseController
 		}
 	}
 
+	public function getWarrantyRate()
+	{
+		$session = session();
+		if(!empty($_SESSION['user'])){
+		    $grandTotal = $this->request->getPost('grandTotal');
+
+		    $report = $this->warrantyModel->getWarrantyRateMdl($grandTotal);
+		    return $this->response->setJSON($report);
+	    } else {
+			return view('login');
+		}
+	}
+
 	
 }

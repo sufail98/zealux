@@ -33,11 +33,11 @@ if($_SESSION['user_type'] == 'user'){
                                 <div class="card-body">
 
                                     <div class="row g-3 align-items-center">
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                            <label  class="form-label">Register No </label>
                                             <input type="text" class="form-control" name="testno" value="<?= $maxtestno; ?>" readonly>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                            <label  class="form-label">Register Date <span style="color: #f00; font-size: 15px;">*</span></label>
                                             <input type="date" class="form-control" name="testdate" required>
                                         </div>
@@ -46,6 +46,10 @@ if($_SESSION['user_type'] == 'user'){
                                             <input type="text" class="form-control" name="cutomer" required>
                                         </div> 
                                         <div class="col-md-3">
+                                           <label  class="form-label">Date of Birth<span style="color: #f00; font-size: 15px;">*</span></label>
+                                            <input type="date" class="form-control" name="dob" required>
+                                        </div>
+                                        <div class="col-md-2">
                                             <label  class="form-label">Age <span style="color: #f00; font-size: 15px;">*</span></label>
                                             <input type="number" class="form-control" name="age" required>
                                         </div>
@@ -71,7 +75,7 @@ if($_SESSION['user_type'] == 'user'){
                                             <input type="number" class="form-control" name="mob1" required>
                                         </div>
                                         <div class="col-md-3">
-                                            <label  class="form-label">Mobile 2</label>
+                                            <label  class="form-label">Whatsapp</label>
                                             <input type="number" class="form-control" name="mob2" >
                                         </div>
                                         <div class="col-md-3">
@@ -79,7 +83,7 @@ if($_SESSION['user_type'] == 'user'){
                                             <input type="email" class="form-control" name="email">
                                         </div>
                                     </div>
-                                    <div class="float-end">
+                                    <div class="float-end pt-17">
                                         <button type="submit" class="btn btn-secondary mt-2">Save & Eyetest</button>
                                         <button type="button" class="btn btn-primary mt-2" onclick="nextStep()">Save & Prescription</button>
 
@@ -316,4 +320,48 @@ if($_SESSION['user_type'] == 'user'){
         showStep(currentStep);
 
     </script>
+
+
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dobInput = document.querySelector('input[name="dob"]');
+        const ageInput = document.querySelector('input[name="age"]');
+
+        // Function to calculate age from DOB
+        function calculateAgeFromDOB(dob) {
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Function to calculate DOB from age
+        function calculateDOBFromAge(age) {
+            const today = new Date();
+            const birthYear = today.getFullYear() - age;
+            const birthDate = new Date(birthYear, today.getMonth(), today.getDate());
+            return birthDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        }
+
+        // Event listener for DOB input change
+        dobInput.addEventListener("change", function () {
+            if (dobInput.value) {
+                ageInput.value = calculateAgeFromDOB(dobInput.value);
+            }
+        });
+
+        // Event listener for Age input change
+        ageInput.addEventListener("input", function () {
+            if (ageInput.value) {
+                dobInput.value = calculateDOBFromAge(ageInput.value);
+            }
+        });
+    });
+</script>
+
 

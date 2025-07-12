@@ -78,26 +78,64 @@ class ProductModel extends Model
 	    }
 	}
 
-	public function AllProducts()
+	public function AllProducts($store_id = null)
 	{
-		$subQuery = $this->db->table('tbl_stock')
-		    ->select('pid, SUM(inward_qty) AS total_in, SUM(outward_qty) AS total_out')
-		    ->groupBy('pid');
+		// $subQuery = $this->db->table('tbl_stock')
+		//     ->select('pid, SUM(inward_qty) AS total_in, SUM(outward_qty) AS total_out')
+		//     ->where('store_id', $store_id)
+		//     ->groupBy('pid');
 
-		$builder = $this->db->table('tbl_product p');
-		$builder->select('
-		    p.*, 
-		    g.group_name, 
-		    IFNULL(stock.total_in - stock.total_out, 0) AS stock_count
-		');
-		$builder->join('tbl_group g', 'g.id = p.group', 'left');
-		$builder->join('tbl_productcolor c', 'c.pid = p.pid', 'left');
-		$builder->join("({$subQuery->getCompiledSelect()}) AS stock", 'stock.pid = p.pid', 'left');
-		$builder->groupBy('p.pid');
-		$builder->orderBy('p.pid', 'DESC');
+		// $builder = $this->db->table('tbl_product p');
+		// $builder->select('
+		//     p.*, 
+		//     g.group_name, 
+		//     IFNULL(stock.total_in - stock.total_out, 0) AS stock_count
+		// ');
+		// $builder->join('tbl_group g', 'g.id = p.group', 'left');
+		// $builder->join('tbl_productcolor c', 'c.pid = p.pid', 'left');
+		// $builder->join("({$subQuery->getCompiledSelect()}) AS stock", 'stock.pid = p.pid', 'left');
+		// $builder->groupBy('p.pid');
+		// $builder->orderBy('p.pid', 'DESC');
 
-		$query = $builder->get();
-		return $query->getResult();
+		// $query = $builder->get();
+		// return $query->getResult();
+
+
+
+
+
+
+		// Set active store ID as SQL user variable
+	    $this->db->query("SET @active_store_id := {$store_id}");
+
+	    $sql = "
+	        SELECT 
+	            p.*, 
+	            g.group_name,
+	            GROUP_CONCAT(
+	                CONCAT(
+	                    st.store_name, ': ', stock.qty,
+	                    IF(st.storeId = @active_store_id, ' (DEF: TRUE)', '')
+	                ) ORDER BY st.storeId SEPARATOR ', '
+	            ) AS store_stock_info,
+	            MAX(IF(st.storeId = @active_store_id, stock.qty, NULL)) AS stock_count
+	        FROM (
+	            SELECT 
+	                s.pid,
+	                s.store_id,
+	                SUM(s.inward_qty) - SUM(s.outward_qty) AS qty
+	            FROM tbl_stock s
+	            GROUP BY s.pid, s.store_id
+	        ) AS stock
+	        JOIN tbl_product p ON p.pid = stock.pid
+	        JOIN tbl_store st ON st.storeId = stock.store_id
+	        LEFT JOIN tbl_group g ON g.id = p.group
+	        GROUP BY stock.pid
+	        ORDER BY p.pid DESC
+	    ";
+
+	    $query = $this->db->query($sql);
+	    return $query->getResult();
 	}
 
 	public function getImagesByProductIds($productIds)
@@ -226,30 +264,66 @@ class ProductModel extends Model
 	                    ->get()
 	                    ->getRow();  
 	}
-	public function searchProducts($query, $limit, $offset)
+	public function searchProducts($query, $limit, $offset, $store_id)
 	{
-		$subQuery = $this->db->table('tbl_stock')
-		    ->select('pid, SUM(inward_qty) AS total_in, SUM(outward_qty) AS total_out')
-		    ->groupBy('pid');
+		// $subQuery = $this->db->table('tbl_stock')
+		//     ->select('pid, SUM(inward_qty) AS total_in, SUM(outward_qty) AS total_out')
+		//     ->groupBy('pid');
 
-		$builder = $this->db->table('tbl_product p');
-		$builder->select('
-		    p.*, 
-		    g.group_name, 
-		    IFNULL(stock.total_in - stock.total_out, 0) AS stock_count
-		');
-		$builder->join('tbl_group g', 'g.id = p.group', 'left');
-		$builder->join('tbl_productcolor c', 'c.pid = p.pid', 'left');
-		$builder->join("({$subQuery->getCompiledSelect()}) AS stock", 'stock.pid = p.pid', 'left');
-		$builder->like('p.barcode', $query)
-		        ->orLike('p.brand', $query)
-		        ->orLike('p.productName', $query);
-		$builder->groupBy('p.pid');
-		$builder->orderBy('p.pid', 'DESC');
-		$builder->limit($limit, $offset);
+		// $builder = $this->db->table('tbl_product p');
+		// $builder->select('
+		//     p.*, 
+		//     g.group_name, 
+		//     IFNULL(stock.total_in - stock.total_out, 0) AS stock_count
+		// ');
+		// $builder->join('tbl_group g', 'g.id = p.group', 'left');
+		// $builder->join('tbl_productcolor c', 'c.pid = p.pid', 'left');
+		// $builder->join("({$subQuery->getCompiledSelect()}) AS stock", 'stock.pid = p.pid', 'left');
+		// $builder->like('p.barcode', $query)
+		//         ->orLike('p.brand', $query)
+		//         ->orLike('p.productName', $query);
+		// $builder->groupBy('p.pid');
+		// $builder->orderBy('p.pid', 'DESC');
+		// $builder->limit($limit, $offset);
 
-		$query = $builder->get();
-		return $query->getResult();
+		// $query = $builder->get();
+		// return $query->getResult();
+
+
+		$this->db->query("SET @active_store_id := {$store_id}");
+
+	    $sql = "
+	        SELECT 
+	            p.*, 
+	            g.group_name,
+	            GROUP_CONCAT(
+	                CONCAT(
+	                    st.store_name, ': ', stock.qty,
+	                    IF(st.storeId = @active_store_id, ' (DEF: TRUE)', '')
+	                ) ORDER BY st.storeId SEPARATOR ', '
+	            ) AS store_stock_info,
+	            MAX(IF(st.storeId = @active_store_id, stock.qty, NULL)) AS stock_count
+	        FROM (
+	            SELECT 
+	                s.pid,
+	                s.store_id,
+	                SUM(s.inward_qty) - SUM(s.outward_qty) AS qty
+	            FROM tbl_stock s
+	            GROUP BY s.pid, s.store_id
+	        ) AS stock
+	        JOIN tbl_product p ON p.pid = stock.pid
+	        JOIN tbl_store st ON st.storeId = stock.store_id
+	        LEFT JOIN tbl_group g ON g.id = p.group
+	         WHERE p.barcode LIKE '%{$query}%'
+	       OR p.brand LIKE '%{$query}%'
+	       OR p.productName LIKE '%{$query}%'
+	        GROUP BY stock.pid
+	        ORDER BY p.pid DESC
+	         LIMIT {$limit} OFFSET {$offset}
+	    ";
+
+	    $query = $this->db->query($sql);
+	    return $query->getResult();
 	}
 
 

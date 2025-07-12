@@ -22,6 +22,16 @@ if($_SESSION['user_type'] == 'user'){
                 <label>To Date:</label>
                 <input type="date" id="toDate" class="form-control">
             </div>
+            <?php if($_SESSION['user_type'] !== 'user'){ ?>
+            <div class="col-md-2">
+                <label class="form-label">Store:</label>
+                <select class="form-select" aria-label="" id="store" required>
+                    <?php foreach ($stores as $stores) { ?>
+                    <option value="<?php echo $stores->storeId; ?>"><?php echo $stores->store_name; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <?php } ?>
             <div class="col-md-3">
                 <button id="filterBtn" class="btn btn-primary mt-4">Filter</button>
             </div>
@@ -88,13 +98,14 @@ if($_SESSION['user_type'] == 'user'){
         const formattedToday = today.toISOString().split('T')[0];
         $('#fromDate').val(formattedToday);
         $('#toDate').val(formattedToday);
+        const store = $('#store').val();
 
         // Function to load the sales report by date
-        function loadSalesReport(fromDate, toDate) {
+        function loadSalesReport(fromDate, toDate, store) {
             $.ajax({
                 url: '<?php echo base_url(); ?>/get-deleted-sales-report-by-date',
                 type: 'POST',
-                data: { from_date: fromDate, to_date: toDate },
+                data: { from_date: fromDate, to_date: toDate, store: store },
                 success: function(response) {
                     const session = "<?= $_SESSION['user_type']; ?>";
                     let rows = '';
@@ -150,16 +161,17 @@ if($_SESSION['user_type'] == 'user'){
         }
 
         // Load today's data on page load
-        loadSalesReport(formattedToday, formattedToday);
+        loadSalesReport(formattedToday, formattedToday, store);
 
         $('#filterBtn').on('click', function(e) {
             e.preventDefault();
 
             const fromDate = $('#fromDate').val();
             const toDate = $('#toDate').val();
+            const store = $('#store').val();
 
             // Load the sales report based on selected dates
-            loadSalesReport(fromDate, toDate);
+            loadSalesReport(fromDate, toDate, store);
         });
 
 

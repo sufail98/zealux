@@ -6,6 +6,13 @@ if($_SESSION['user_type'] == 'user'){
 } ?>
 
 <div class="body d-flex py-3">
+    <div class="row align-items-center">
+        <div class="border-0 mb-4">
+            <div class="card-header py-3 no-bg bg-transparent d-flex align-items-center px-0 justify-content-between border-bottom flex-wrap">
+                <h3 class="fw-bold mb-0"><span><a href="javascript:history.back()"><i class="icofont-block-left fs-3" title="Back"></i></a></span> Invoice Items</h3>
+            </div>
+        </div>
+    </div>
     <div class="single-btn w-sm-100 d-flex justify-content-end me-4 mt-3">
 
         <?php if($salesMasterData[0]->delivered == 1) { ?>

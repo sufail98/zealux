@@ -59,6 +59,13 @@ class UserModel extends Model
 			return false;
 		}
 	}	
+	public function checkUser($username)
+	{
+		return $this->db->table('tbl_login')
+        ->where('username', $username)
+        ->get()
+        ->getRow();
+	}
 	
 	
 }

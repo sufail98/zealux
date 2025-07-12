@@ -236,9 +236,34 @@
                     ? '<?= base_url("images/product"); ?>/' + colorImages[0][0] 
                     : noImgUrl;
 
+                // Handle stock message
+                let stockMessage = '';
+                if (product.stock_count < 1) {
+                    stockMessage = `<span class="badge bg-danger">Out of stock</span>`;
+                } else if (product.stock_count == 1) {
+                    stockMessage = `<span class="badge bg-warning">Only 1 left in stock</span>`;
+                } else {
+                    stockMessage = `<span class="badge bg-success">In stock</span>`;
+                }
+
+
+                const storeStockInfo = product.store_stock_info;
+
+                // Extract stock info into an array of objects
+                const storeStocks = storeStockInfo.split(',').map(item => {
+                    const clean = item.trim();
+                    const match = clean.match(/^(.+?):\s*(\d+)/); // Store name and stock number
+                    return match ? { store: match[1], stock: match[2] } : null;
+                }).filter(Boolean);
+
+                // Build HTML for each stock line
+                const stockInfoHTML = storeStocks.map(info => 
+                    `<span class="rating mb-2 d-block">Stock on ${info.store}: ${info.stock}</span>`
+                ).join('');
+
                 const productHTML = `
                     <div class="col">
-                        <div class="card" onclick="window.location.href='<?= base_url(); ?>/get-product-details/${productId}';">
+                        <div class="card" onclick="handleProductClick(${productId}, ${product.stock_count})">
                             <div class="product">
                                 <div class="product-image">
                                     <div class="product-item active">
@@ -250,16 +275,12 @@
                                     <a href="<?= base_url(); ?>/get-product-details/${productId}" class="fw-bold">${product.productName}</a>
                                     <p class="text-muted m-0">${product.brand}</p>
                                    
-                                    ${product.stock_count > 1 ? 
-                                        `<span class="badge bg-success">In stock</span>` : 
-                                        (product.stock_count == 1 ? 
-                                            `<span class="badge bg-warning">Only 1 left in stock</span>` : 
-                                            `<span class="badge bg-danger">Out of stock</span>`
-                                        )
-                                    }
+                                    ${stockMessage}
+
+                                    ${stockInfoHTML}
 
                                     <span class="d-block fw-bold fs-5 text-secondary">&#8377; ${product.sales_rate}</span>
-                                    <a href="<?= base_url(); ?>/get-product-details/${productId}" class="btn btn-primary mt-3">Add to Cart</a>
+                                    <a href="#" onclick="handleProductClick(${productId}, ${product.stock_count})" class="btn btn-primary mt-3">Add to Cart</a>
                                 </div>
                             </div>
                         </div>
@@ -267,6 +288,26 @@
                 `;
                 productList.insertAdjacentHTML('beforeend', productHTML);
             });
+        }
+
+
+        function handleProductClick(productId, stockCount) {
+            if (stockCount < 1) {
+                Swal.fire({
+                    title: "Out of Stock",
+                    text: "This product is currently out of stock. Do you still want to continue?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, continue",
+                    cancelButtonText: "No, stay here"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `<?= base_url(); ?>/get-product-details/${productId}`;
+                    }
+                });
+            } else {
+                window.location.href = `<?= base_url(); ?>/get-product-details/${productId}`;
+            }
         }
 
 

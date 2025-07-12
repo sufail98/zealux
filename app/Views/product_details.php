@@ -5,6 +5,11 @@
 
         <div class="row g-3 mb-3 step" id="step-1" >
             <div class="col-md-12">
+                <div class="">
+                    <a type="button" class="btn btn-secondary" href="javascript:history.back()">Back</a>
+                </div>
+            </div>
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
                         <div class="product-details">
@@ -184,7 +189,7 @@
                             <div id="tab<?= $index; ?>" class="lens-tabcontent" style="<?= $index === 1 ? 'display:block;' : 'display:none;'; ?>">
                                 <!-- <h3><?= htmlspecialchars($lens->lensName); ?> </h3> -->
                                 <div>
-                                    <ul class="list-unstyled list-group list-group-custom list-group-flush mb-0 lens-feature-list">
+                                    <!-- <ul class="list-unstyled list-group list-group-custom list-group-flush mb-0 lens-feature-list">
                                         <?php foreach ($lensfeatures as $feature): ?>
                                             <?php 
                                             if (in_array($feature->id, $lens_features)): 
@@ -194,7 +199,7 @@
                                                         <img class="avatar rounded" src="<?php echo base_url(); ?>/images/lensfeatures/<?= $feature->image; ?>" alt="">
                                                         <div class="flex-fill ms-3 text-truncate">
                                                             <h6 class="d-flex justify-content-between mb-0"><span><?= $feature->description; ?></span> 
-                                                                <!-- <small class="msg-time">10:45 AM</small> -->
+                                                           
                                                             </h6>
                                                             <span class="text-muted"><?= $lens->lensName; ?></span>
                                                         </div>
@@ -210,7 +215,7 @@
                                               <span>&#8377;<?= $lens->salesRate; ?></span>
                                             </span>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                 </div>
                             </div>
@@ -228,6 +233,7 @@
                        <img id="frame-product-image" src="" alt="" class="img-fluid mb-2">
                        <div class="frame-deatils">
                         <input type="text" name="product_id" id="product_id" value="<?= $editdata['product_details'][0]->pid; ?>" hidden>
+                           <p class="cart-barcode"><?= $editdata['product_details'][0]->barcode; ?></p>
                            <h2 class="fw-bold fs-5" id="frame-product-name"><?= $editdata['product_details'][0]->productName; ?></h2>
                            <p id="frame-product-price">&#8377;<?= $editdata['product_details'][0]->sales_rate; ?></p>
                        </div>
@@ -266,31 +272,8 @@
                       </svg>
                     </span>
                   </div>
-                  <?php foreach ($lenscoating as $index => $lenscoating){ ?>
-
-                  <div class="coating-card">
-                    <div class="row g-0 ">
-                      <div class="col-lg-4 d-flex align-items-center coating-detail">
-                        <div class="card-body">
-                          <h6 class="card-subtitle text-uppercase">&#8377;<?= $lenscoating->amount; ?></h6>
-                          <h4 class="card-title display-5 mb-2"><?= $lenscoating->coating_name; ?></h4>
-                          <p class="card-text"><?= $lenscoating->description; ?></p>
-                          <!-- <a href="#" class="card-link stretched-link">Card link</a> -->
-                        </div>
-                      </div>
-                      <div class="col-lg-8 coating-image">
-                        <img src="<?= base_url(); ?>/images/lenscoating/<?= $lenscoating->image; ?>" class="img-fluid rounded-end" alt="">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="coating" value="<?= $lenscoating->coating_name; ?>,<?= $lenscoating->amount; ?>,<?= $lenscoating->description; ?>" id="coating-<?= $index; ?>" onclick="setCoatingDetails('<?= $lenscoating->coating_name; ?>', '<?= $lenscoating->amount; ?>', '<?= $lenscoating->description; ?>', <?= $lenscoating->id; ?>)">
-                            <label class="form-check-label" for="coating-<?= $index; ?>">
-                            ADD COATING
-                            </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                <?php } ?>
-
+                  <div id="lenscoating-section"></div>
+                  
                 </div>
               </div>
 
@@ -316,11 +299,17 @@
                    <?php } else { ?>
                     <button type="button" class="btn btn-secondary" onclick="prevStep()">Back</button>
                     <?php } ?>
-                    <a href="javascript:void(0);" class="btn btn-primary w-sm-100 justify-content-center mt-sm-5 float-end" data-bs-toggle="modal" data-bs-target="#BreakageWarranty">Add Breakage Warranty</a>
+                    <!-- <a href="javascript:void(0);" class="btn btn-primary w-sm-100 justify-content-center mt-sm-5 float-end" data-bs-toggle="modal" data-bs-target="#BreakageWarranty">Add Breakage Warranty</a> -->
 
                     <a href="javascript:void(0);" class="btn btn-primary w-sm-100 justify-content-center mt-sm-5 float-end me-1" data-bs-toggle="modal" data-bs-target="#salesreturnModal">Add Sales Return</a>
+
+                    <a href="<?php echo base_url(); ?>/sales" class="btn btn-primary w-sm-100 justify-content-center mt-sm-5 me-1 float-end" ><span class="logo-icon">
+                                    <i class="icofont-plus-circle fs-6 text-white "> Add New Item</i>
+                                </span> </a>
+
                     <div class="card-header py-2 no-bg bg-transparent d-flex align-items-center px-0 justify-content-center border-bottom flex-wrap">
                         <h3 class="fw-bold mb-0">Cart Detail</h3>
+
                     </div>
                 </div>
             </div> <!-- Row end  -->
@@ -336,6 +325,8 @@
                                 <input type="text" id="cart-frame-product-colorName" value="" hidden>
 
                                 <input type="text" id="cart-frame-product-name" value="<?= $editdata['product_details'][0]->productName; ?>" hidden>
+                                <input type="text" id="cart-frame-product-barcode" value="<?= $editdata['product_details'][0]->barcode; ?>" hidden>
+
                                 <input type="text" id="group_id" value="<?= $group_id; ?>" hidden>
                                 <input type="text" id="isPrivilegeApplied" value="<?= $isPrivilegeApplied; ?>" hidden>
 
@@ -568,7 +559,7 @@
                     </div>
                 </div>
 
-                <div class="modal fade" id="BreakageWarranty" tabindex="-1" aria-labelledby="" style="display: none;">
+                <!-- <div class="modal fade" id="BreakageWarranty" tabindex="-1" aria-labelledby="" style="display: none;">
                     <div class="modal-dialog modal-xl">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -589,7 +580,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="modal fade" id="salesreturnModal" tabindex="-1" aria-labelledby="" style="display: none;">
                     <div class="modal-dialog modal-xl">
@@ -640,7 +631,153 @@
 
 
 
-                <div class="modal fade" id="medicalrecord" tabindex="-1" aria-labelledby="exampleModalLgLabel" aria-hidden="true" style="display: none;">
+
+                <div class="modal fade" id="addmedicalrecord" tabindex="-1" aria-labelledby="exampleModalLgLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title h4" id="exampleModalLgLabel">Add New Record</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                     
+                                <form id="addMedicalForm" method="post" action="<?php echo base_url(); ?>/save-medicalrecord">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-2">
+                                           <label class="form-label">Register No </label>
+                                            <input type="text" class="form-control" name="testno" value="<?= $maxtestno; ?>" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                           <label class="form-label">Register Date <span style="color: #f00; font-size: 15px;">*</span></label>
+                                            <input type="date" class="form-control" name="testdate" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                           <label class="form-label">Customer Name <span style="color: #f00; font-size: 15px;">*</span></label>
+                                            <input type="text" class="form-control" name="cutomer" required>
+                                        </div> 
+                                        <div class="col-md-3">
+                                           <label class="form-label">Date of Birth<span style="color: #f00; font-size: 15px;">*</span></label>
+                                            <input type="date" class="form-control" name="ndob" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Age <span style="color: #f00; font-size: 15px;">*</span></label>
+                                            <input type="number" class="form-control" name="age" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="">
+                                                <label class="form-label">Gender </span></label>
+                                            </div>
+                                            <div class="form-check-inline">
+                                                <input class="form-check-input" type="radio" name="gender" value="Male">
+                                                <label class="form-check-label">
+                                                    Male
+                                                </label>
+                                            </div>
+                                            <div class="form-check-inline">
+                                                <input class="form-check-input" type="radio" name="gender" value="Female">
+                                                <label class="form-check-label">
+                                                    Female
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Mobile 1 <span style="color: #f00; font-size: 15px;">*</span></label>
+                                            <input type="number" class="form-control" name="mob1" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Whatsapp</label>
+                                            <input type="number" class="form-control" name="mob2" >
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" name="email">
+                                        </div>
+
+                                        <div class="col-md-5">   
+                                            <h6 class="mb-0 fw-bold ">Frame Measurement</h6>
+                                            <table id="frame_measurement" class="table align-middle" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>R<sub>x</sub></th>
+                                                        <th>Right Eye</th>
+                                                        <th>Left Eye</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th>Segment Height</th>
+                                                        <td style="background-color: #77CDFF; color: #fff;"><input type="text" name="segmentheight_right" id="segmentheight_r" class="form-control"></td>
+                                                        <td style="background-color: #77CDFF; color: #fff;"><input type="text" name="segmentheight_left" id="segmentheight_l" class="form-control"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Fitting Height</th>
+                                                        <td style="background-color: #6A9AB0; color: #fff;"><input type="text" name="fittingheight_right" id="fittingheight_r" class="form-control"></td>
+                                                        <td style="background-color: #6A9AB0; color: #fff;"><input type="text" name="fittingheight_left" id="fittingheight_l" class="form-control"></td>
+                                                    </tr>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <h6 class="mb-0 fw-bold ">Prescription</h6>
+                                            <table id="prescriptionTable" class="table align-middle" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th>R<sub>x</sub></th>
+                                                        <th>Right Eye</th>
+                                                        <th>Left Eye</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th>SPH</th>
+                                                        <td style="background-color: #77CDFF; color: #fff;"><input type="text" name="nsphrr" id="nsphrr" class="form-control"></td>
+                                                        <td style="background-color: #77CDFF; color: #fff;"><input type="text" name="nsphll" id="nsphll" class="form-control"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>CYL</th>
+                                                        <td style="background-color: #6A9AB0; color: #fff;"><input type="text" name="ncylrr" id="ncylrr" class="form-control"></td>
+                                                        <td style="background-color: #6A9AB0; color: #fff;"><input type="text" name="ncylll" id="ncylll" class="form-control"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>AXIS</th>
+                                                        <td style="background-color: #DA8359; color: #fff;"><input type="text" name="naxisrr" id="naxisrr" class="form-control"></td>
+                                                        <td style="background-color: #DA8359; color: #fff;"><input type="text" name="naxisll" id="naxisll" class="form-control"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>ADD</th>
+                                                        <td style="background-color: #BC7C7C; color: #fff;"><input type="text" name="naddrr" id="naddrr" class="form-control"></td>
+                                                        <td style="background-color: #BC7C7C; color: #fff;"><input type="text" name="naddll" id="naddll" class="form-control"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>PD</th>
+                                                        <td style="background-color: #626F47; color: #fff;"><input type="text" name="npdrr" id="npdrr" class="form-control"></td>
+                                                        <td style="background-color: #626F47; color: #fff;"><input type="text" name="npdll" id="npdll" class="form-control"></td>
+                                                    </tr>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+
+                                    </div>
+                                    <div class="float-end">
+                                        <button type="button" class="btn btn-secondary mt-2" onclick="saveNewMedical()">Save </button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+                <div class="modal fade" id="medicalrecord" tabindex="-1" aria-labelledby="exampleModalLgLabel" style="display: none;">
                     <div class="modal-dialog modal-xl">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -656,17 +793,6 @@
                                         </div>
                                     </div>
                                     <ul class="list-unstyled list-group list-group-custom list-group-flush mb-0 eyetest_users" id="userList">
-                                       <?php foreach ($eyetest_users as $eyetest_users) { ?>
-                                        <li class="list-group-item px-md-4 py-3 py-md-4 eyetest_user_item">
-                                            <a href="javascript:void(0);" onclick="M_nextStep(<?= $eyetest_users->EyeTestId; ?>)" class="d-flex">
-                                                <img class="avatar rounded" src="<?= base_url(); ?>/assets/images/xs/avatar4.svg" alt="">
-                                                <div class="flex-fill ms-3 text-truncate">
-                                                    <h6 class="d-flex justify-content-between mb-0"><span><?= $eyetest_users->CustomerName; ?></span> </h6>
-                                                    <span class="text-muted"><?= $eyetest_users->MobileNo1; ?></span>
-                                                </div>
-                                            </a>
-                                        </li>
-                                    <?php } ?>
                                        
                                     </ul>
                                 </div>
@@ -770,6 +896,7 @@
                                                                 <input type="text" name="frame_measurements" id="frame_measurements" value="" hidden>
                                                                    <div class="card">
                                                                         <div class="card-body">
+                                                                           
                                                                             <table id="prescriptionTable" class="table align-middle" style="width:100%">
                                                                                 <thead>
                                                                                     <tr>
@@ -781,29 +908,30 @@
                                                                                 <tbody>
                                                                                     <tr>
                                                                                         <th>SPH</th>
-                                                                                        <td style="background-color: #77CDFF; color: #fff;"></td>
-                                                                                        <td style="background-color: #77CDFF; color: #fff;"></td>
+                                                                                        <td style="background-color: #77CDFF; color: #fff;"><input type="text" name="sphrr" id="sphrr" class="form-control"></td>
+                                                                                        <td style="background-color: #77CDFF; color: #fff;"><input type="text" name="sphll" id="sphll" class="form-control"></td>
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <th>CYL</th>
-                                                                                        <td style="background-color: #6A9AB0; color: #fff;"></td>
-                                                                                        <td style="background-color: #6A9AB0; color: #fff;"></td>
+                                                                                        <td style="background-color: #6A9AB0; color: #fff;"><input type="text" name="cylrr" id="cylrr" class="form-control"></td>
+                                                                                        <td style="background-color: #6A9AB0; color: #fff;"><input type="text" name="cylll" id="cylll" class="form-control"></td>
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <th>AXIS</th>
-                                                                                        <td style="background-color: #DA8359; color: #fff;"></td>
-                                                                                        <td style="background-color: #DA8359; color: #fff;"></td>
+                                                                                        <td style="background-color: #DA8359; color: #fff;"><input type="text" name="axisrr" id="axisrr" class="form-control"></td>
+                                                                                        <td style="background-color: #DA8359; color: #fff;"><input type="text" name="axisll" id="axisll" class="form-control"></td>
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <th>ADD</th>
-                                                                                        <td style="background-color: #BC7C7C; color: #fff;"></td>
-                                                                                        <td style="background-color: #BC7C7C; color: #fff;"></td>
+                                                                                        <td style="background-color: #BC7C7C; color: #fff;"><input type="text" name="addrr" id="addrr" class="form-control"></td>
+                                                                                        <td style="background-color: #BC7C7C; color: #fff;"><input type="text" name="addll" id="addll" class="form-control"></td>
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <th>PD</th>
-                                                                                        <td style="background-color: #626F47; color: #fff;"></td>
-                                                                                        <td style="background-color: #626F47; color: #fff;"></td>
+                                                                                        <td style="background-color: #626F47; color: #fff;"><input type="text" name="pdrr" id="pdrr" class="form-control"></td>
+                                                                                        <td style="background-color: #626F47; color: #fff;"><input type="text" name="pdll" id="pdll" class="form-control"></td>
                                                                                     </tr>
+                                                                                    
                                                                                 </tbody>
                                                                             </table>
 
@@ -873,10 +1001,26 @@
                                                             <label for="firstname1" class="form-label">Name</label>
                                                             <input type="text" class="form-control" name="cname">
                                                         </div>
+
                                                         <div class="col-md-6">
                                                             <label for="phonenumber1" class="form-label">Phone Number</label>
-                                                            <input type="text" class="form-control" name="cphone">
+                                                            <div class="d-flex">
+                                                                <select name="country_code" class="form-select" style="max-width: 100px;">
+                                                                    <option value="+1"> +1 </option>
+                                                                    <option value="+91" selected> +91 </option>
+                                                                    <option value="+44"> +44 </option>
+                                                                    <option value="+61"> +61 </option>
+                                                                    <option value="+971"> +971 </option>
+                                                                </select>
+                                                                <input type="text" class="form-control" name="cphone">
+                                                            </div>
                                                         </div>
+
+                                                        <!-- <div class="col-md-6">
+                                                            <label for="phonenumber1" class="form-label">Phone Number</label>
+                                                            <input type="text" class="form-control" name="cphone">
+                                                        </div> -->
+
                                                         <div class="col-md-6">
                                                             <label for="emailaddress1" class="form-label">Email Address</label>
                                                             <input type="email" class="form-control" name="cmail">
@@ -1326,46 +1470,6 @@
         });
 
 
-
-
-        $('#previlagecard').on('show.bs.modal', function () {
-            // Clear existing list
-            $('#previlageUserList').empty();
-
-            // Make AJAX request to get previlage users
-            $.ajax({
-                url: '<?php echo base_url(); ?>/get-previlage-users',  
-                type: 'GET',
-                success: function(users) {
-                    if (users.length > 0) {
-        
-                        users.forEach(function(user) {
-                            $('#previlageUserList').append(`
-                                <li class="list-group-item px-md-4 py-3 py-md-4 previlage_user_item">
-                                    <a href="javascript:void(0);" onclick="SetPrevilage(${user.id})" class="d-flex">
-                                        <img class="avatar rounded" src="<?= base_url(); ?>/assets/images/xs/avatar4.svg" alt="">
-                                        <div class="flex-fill ms-3 text-truncate">
-                                            <h6 class="d-flex justify-content-between mb-0">
-                                                <span>${user.name}</span>
-                                            </h6>
-                                            <span class="text-muted">${user.phone}</span>
-                                        </div>
-                                    </a>
-                                </li>
-                            `);
-                        });
-                    } else {
-                        $('#previlageUserList').append('<li class="list-group-item text-center">No users found.</li>');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    $('#previlageUserList').append('<li class="list-group-item text-center">Error loading users.</li>');
-                }
-            });
-        });
-
-
-
         $('#salesreturnModal').on('show.bs.modal', function () {
             // Clear existing list
             $('#salesReturnList').empty();
@@ -1413,41 +1517,41 @@
         });
 
 
-        $('#BreakageWarranty').on('show.bs.modal', function () {
-            // Clear existing list
-            $('#BreakageWarrantyList').empty();
+        // $('#BreakageWarranty').on('show.bs.modal', function () {
+        //     // Clear existing list
+        //     $('#BreakageWarrantyList').empty();
 
-            // Make AJAX request to get previlage users
-            $.ajax({
-                url: '<?php echo base_url(); ?>/get-breakage-warranty',  
-                type: 'GET',
-                success: function(warranty) {
-                    if (warranty.length > 0) {
+        //     // Make AJAX request to get previlage users
+        //     $.ajax({
+        //         url: '<?php echo base_url(); ?>/get-breakage-warranty',  
+        //         type: 'GET',
+        //         success: function(warranty) {
+        //             if (warranty.length > 0) {
         
-                        warranty.forEach(function(data) {
-                            $('#BreakageWarrantyList').append(`
-                                <li class="list-group-item px-md-4 py-3 py-md-4 previlage_user_item">
-                                    <a href="javascript:void(0);" onclick="SetWarrantyAmount(${data.sales_rate}, ${data.id})" class="d-flex">
-                                        <i class="icofont-card fa-2x"></i>
-                                        <div class="flex-fill ms-3 text-truncate">
-                                            <h6 class="d-flex justify-content-between mb-0">
-                                                <span>${data.name}</span>
-                                            </h6>
-                                            <p class="m-0 w_amount">Amount: ${data.sales_rate}</p>
-                                        </div>
-                                    </a>
-                                </li>
-                            `);
-                        });
-                    } else {
-                        $('#BreakageWarrantyList').append('<li class="list-group-item text-center">No Warranties found.</li>');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    $('#BreakageWarrantyList').append('<li class="list-group-item text-center">Error loading Warranties.</li>');
-                }
-            });
-        });
+        //                 warranty.forEach(function(data) {
+        //                     $('#BreakageWarrantyList').append(`
+        //                         <li class="list-group-item px-md-4 py-3 py-md-4 previlage_user_item">
+        //                             <a href="javascript:void(0);" onclick="SetWarrantyAmount(${data.sales_rate}, ${data.id})" class="d-flex">
+        //                                 <i class="icofont-card fa-2x"></i>
+        //                                 <div class="flex-fill ms-3 text-truncate">
+        //                                     <h6 class="d-flex justify-content-between mb-0">
+        //                                         <span>${data.name}</span>
+        //                                     </h6>
+        //                                     <p class="m-0 w_amount">Amount: ${data.sales_rate}</p>
+        //                                 </div>
+        //                             </a>
+        //                         </li>
+        //                     `);
+        //                 });
+        //             } else {
+        //                 $('#BreakageWarrantyList').append('<li class="list-group-item text-center">No Warranties found.</li>');
+        //             }
+        //         },
+        //         error: function(xhr, status, error) {
+        //             $('#BreakageWarrantyList').append('<li class="list-group-item text-center">Error loading Warranties.</li>');
+        //         }
+        //     });
+        // });
 
 
     </script>
@@ -1647,13 +1751,57 @@
 
 
 
+
+
+
+            const dobInput = document.querySelector('input[name="ndob"]');
+            const ageInput = document.querySelector('input[name="age"]');
+
+            // Function to calculate age from DOB
+            function calculateAgeFromDOB(dob) {
+                const birthDate = new Date(dob);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+
+            // Function to calculate DOB from age
+            function calculateDOBFromAge(age) {
+                const today = new Date();
+                const birthYear = today.getFullYear() - age;
+                const birthDate = new Date(birthYear, today.getMonth(), today.getDate());
+                return birthDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+            }
+
+            // Event listener for DOB input change
+            dobInput.addEventListener("change", function () {
+                if (dobInput.value) {
+                    ageInput.value = calculateAgeFromDOB(dobInput.value);
+                }
+            });
+
+            // Event listener for Age input change
+            ageInput.addEventListener("input", function () {
+                if (ageInput.value) {
+                    dobInput.value = calculateDOBFromAge(ageInput.value);
+                }
+            });
+        });
+
+        function initializeCarousel() {
           // lens coating sections
           const items = document.querySelectorAll('.coating-card');
           let current = 0;
           const total = items.length;
 
           // Set the first card to be active
-          items[0].classList.add('active');
+          if (items.length > 0) {
+            items[0].classList.add('active');
+          }
 
           // Navigation functions
           function setSlide(prev, next) {
@@ -1684,64 +1832,110 @@
           let touchStartX = 0;
           let touchEndX = 0;
 
-          const cardCarousel = document.querySelector('.card-carousel');
+          // const cardCarousel = document.querySelector('.card-carousel');
 
-          cardCarousel.addEventListener('touchstart', function (event) {
-            touchStartX = event.changedTouches[0].screenX;
-          });
+          // cardCarousel.addEventListener('touchstart', function (event) {
+          //   touchStartX = event.changedTouches[0].screenX;
+          // });
 
-          cardCarousel.addEventListener('touchmove', function (event) {
-            touchEndX = event.changedTouches[0].screenX;
-          });
+          // cardCarousel.addEventListener('touchmove', function (event) {
+          //   touchEndX = event.changedTouches[0].screenX;
+          // });
 
-          cardCarousel.addEventListener('touchend', function () {
-            if (touchEndX < touchStartX - 50) {
-              // Swipe left to go to the next slide
-              const prev = current;
-              const next = current + 1;
-              setSlide(prev, next);
-            }
-            if (touchEndX > touchStartX + 50) {
-              // Swipe right to go to the previous slide
-              const prev = current;
-              const next = current - 1;
-              setSlide(prev, next);
-            }
-          });
-        });
+          // cardCarousel.addEventListener('touchend', function () {
+          //   if (touchEndX < touchStartX - 50) {
+          //     // Swipe left to go to the next slide
+          //     const prev = current;
+          //     const next = current + 1;
+          //     setSlide(prev, next);
+          //   }
+          //   if (touchEndX > touchStartX + 50) {
+          //     // Swipe right to go to the previous slide
+          //     const prev = current;
+          //     const next = current - 1;
+          //     setSlide(prev, next);
+          //   }
+          // });
+        } 
 
 
         // users serach
         document.getElementById('userserach').addEventListener('input', function() {
-            var input = this.value.toLowerCase();
-            var listItems = document.querySelectorAll('#userList .eyetest_user_item');
-            
-            listItems.forEach(function(item) {
-                var userName = item.querySelector('h6 span').textContent.toLowerCase();
-                var userMobile = item.querySelector('.text-muted').textContent.toLowerCase();
-                if (userName.includes(input) || userMobile.includes(input)) {
-                    item.style.display = ''; 
-                } else {
-                    item.style.display = 'none'; 
+            var input = this.value.trim();
+            var userList = document.getElementById('userList');
+
+            // Send AJAX request to fetch users
+            fetch('<?= base_url("/get-eyetest-users"); ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'query=' + encodeURIComponent(input)
+            })
+            .then(response => response.json())
+            .then(data => {
+                userList.innerHTML = ""; // Clear existing list
+
+                if (data.length === 0) {
+                    userList.innerHTML = "<li class='list-group-item'>No results found</li>";
+                    return;
                 }
-            });
+
+                data.forEach(user => {
+                    let listItem = `
+                        <li class="list-group-item px-md-4 py-3 py-md-4 eyetest_user_item">
+                            <a href="javascript:void(0);" onclick="M_nextStep(${user.EyeTestId})" class="d-flex">
+                                <img class="avatar rounded" src="<?= base_url(); ?>/assets/images/xs/avatar4.svg" alt="">
+                                <div class="flex-fill ms-3 text-truncate">
+                                    <h6 class="d-flex justify-content-between mb-0"><span>${user.CustomerName}</span></h6>
+                                    <span class="text-muted">${user.MobileNo1}</span>
+                                </div>
+                            </a>
+                        </li>`;
+                    userList.innerHTML += listItem;
+                });
+            })
+            .catch(error => console.error('Error fetching users:', error));
+
         });
+
 
         // users serach
         document.getElementById('previlageUserserach').addEventListener('input', function() {
-            var input = this.value.toLowerCase();
-            var listItems = document.querySelectorAll('#previlageUserList .previlage_user_item');
-            
-            listItems.forEach(function(item) {
-                var userName = item.querySelector('h6 span').textContent.toLowerCase();
-                var userMobile = item.querySelector('.text-muted').textContent.toLowerCase();
-                if (userName.includes(input) || userMobile.includes(input)) {
-                    item.style.display = ''; 
-                } else {
-                    item.style.display = 'none'; 
+            var input = this.value.trim();
+            var userList = document.getElementById('previlageUserList');
+
+
+            fetch('<?= base_url("/get-previlage-users"); ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'query=' + encodeURIComponent(input)
+            })
+            .then(response => response.json())
+            .then(data => {
+                userList.innerHTML = ""; // Clear existing list
+
+                if (data.length === 0) {
+                    userList.innerHTML = "<li class='list-group-item'>No results found</li>";
+                    return;
                 }
-            });
+
+                data.forEach(user => {
+                    let listItem = `
+                        <li class="list-group-item px-md-4 py-3 py-md-4 eyetest_user_item">
+                            <a href="javascript:void(0);" onclick="SetPrevilage(${user.id})" class="d-flex">
+                                <img class="avatar rounded" src="<?= base_url(); ?>/assets/images/xs/avatar4.svg" alt="">
+                                <div class="flex-fill ms-3 text-truncate">
+                                    <h6 class="d-flex justify-content-between mb-0"><span>${user.name}</span></h6>
+                                    <span class="text-muted">${user.phone}</span>
+                                </div>
+                            </a>
+                        </li>`;
+                    userList.innerHTML += listItem;
+                });
+            })
+            .catch(error => console.error('Error fetching users:', error));
+
         });
+
 
         // salesReturn serach
         document.getElementById('salesReturnserach').addEventListener('input', function() {
@@ -1759,20 +1953,20 @@
             });
         });
 
-        document.getElementById('BreakageWarrantyserach').addEventListener('input', function() {
-            var input = this.value.toLowerCase();
-            var listItems = document.querySelectorAll('#BreakageWarrantyList .previlage_user_item');
+        // document.getElementById('BreakageWarrantyserach').addEventListener('input', function() {
+        //     var input = this.value.toLowerCase();
+        //     var listItems = document.querySelectorAll('#BreakageWarrantyList .previlage_user_item');
             
-            listItems.forEach(function(item) {
-                var userName = item.querySelector('h6 span').textContent.toLowerCase();
-                var userMobile = item.querySelector('.w_amount').textContent.toLowerCase();
-                if (userName.includes(input) || userMobile.includes(input)) {
-                    item.style.display = ''; 
-                } else {
-                    item.style.display = 'none'; 
-                }
-            });
-        });
+        //     listItems.forEach(function(item) {
+        //         var userName = item.querySelector('h6 span').textContent.toLowerCase();
+        //         var userMobile = item.querySelector('.w_amount').textContent.toLowerCase();
+        //         if (userName.includes(input) || userMobile.includes(input)) {
+        //             item.style.display = ''; 
+        //         } else {
+        //             item.style.display = 'none'; 
+        //         }
+        //     });
+        // });
 
     </script>
 
@@ -1826,9 +2020,79 @@
                         const yyyyMmDdFormat = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, '0')}-${String(futureDate.getDate()).padStart(2, '0')}`;
                         $('#expected-delivery-date').val(yyyyMmDdFormat);
 
-                        console.log("Formatted Expected Delivery Date:", formattedDate);
-                        console.log("Expected Delivery Date (YYYY-MM-DD):", yyyyMmDdFormat);
+                        // console.log("Formatted Expected Delivery Date:", formattedDate);
+                        // console.log("Expected Delivery Date (YYYY-MM-DD):", yyyyMmDdFormat);
                     } 
+                },
+                error: function () {
+                    alert('There was an error get-delivery-days');
+                }
+            });
+
+            // select coating basedon the lens
+            $.ajax({
+                type: 'GET',
+                url: '<?php echo base_url(); ?>/get-coating-details', 
+                data: { lensid: lensid },
+                dataType: 'json',
+                success: function (response) {
+                    // console.log('response',response);
+                    if (response.valid && response.lensCoatingId.length > 0) {
+                        let html = '';
+
+                        response.lensCoatingId.forEach((lenscoating, index) => {
+                            let activeClass = index === 0 ? 'active' : '';
+
+
+                            let featureHtml = '';
+                            (lenscoating.features || []).forEach(feature => {
+                              featureHtml += `
+                                <li class="list-group-item px-md-4 py-3 py-md-4">
+                                  <a href="javascript:void(0);" class="d-flex">
+                                    <img class="avatar rounded" src="${feature.image}" alt="">
+                                    <div class="flex-fill ms-3 text-truncate">
+                                      <h6 class="d-flex justify-content-between mb-0">
+                                          <span>${feature.description}</span>
+                                      </h6>
+                                      <span class="text-muted">${feature.lensName}</span>
+                                    </div>
+                                  </a>
+                                </li>`;
+                            });
+                            html += `
+                                <div class="coating-card ${activeClass}">
+                                    <div class="row g-0">
+                                        <div class="col-lg-4 d-flex align-items-center coating-detail">
+                                            <div class="card-body">
+                                                <h6 class="card-subtitle text-uppercase">&#8377;${lenscoating.amount}</h6>
+                                                <h4 class="card-title display-6 mb-2">${lenscoating.coating_name}</h4>
+                                                <p class="card-text">${lenscoating.description || ''}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-8 coating-image">
+                                            <ul class="list-unstyled list-group list-group-custom list-group-flush mb-0 lens-feature-list">
+                                              ${featureHtml}
+                                            </ul>
+
+
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="coating" value="${lenscoating.coating_name},${lenscoating.amount},${lenscoating.description || ''}" id="coating-${index}" onclick="setCoatingDetails('${lenscoating.coating_name}', '${lenscoating.amount}', '${lenscoating.description || ''}', ${lenscoating.id})">
+                                                <label class="form-check-label" for="coating-${index}">
+                                                    ADD COATING
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        $('#lenscoating-section').html(html);
+
+                        initializeCarousel();
+                    } else {
+                        $('#lenscoating-section').html('<p>No coating details available.</p>');
+                    }
                 },
                 error: function () {
                     alert('There was an error get-delivery-days');
@@ -1931,7 +2195,9 @@
             }
 
             let customerName = $('#customer_details').find('input[name="cname"]').val();
-            let mob = $('#customer_details').find('input[name="cphone"]').val();
+            let countryCode = $('#customer_details').find('select[name="country_code"]').val();
+            let phoneNumber = $('#customer_details').find('input[name="cphone"]').val();
+            let mob = countryCode + phoneNumber;
             let Email = $('#customer_details').find('input[name="cmail"]').val();
             let salesman = $('#salesman').val();
             let salesman_name = $('#salesman option:selected').text();
@@ -2346,77 +2612,212 @@
             displayCartItems();
         }
 
+        function addLenscleaner(callback){
+            let productData = JSON.parse(localStorage.getItem('productData')) || [];
+
+            // Function to generate a unique cart_item_id
+            const generateUniqueId = () => 'cart_' + Date.now() + Math.floor(Math.random() * 1000);
+            $.ajax({
+                url: '<?php echo base_url(); ?>/get-lens-cleaner-details',
+                type: 'GET',
+                data: { barcode: '0114' },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // console.log('lens det',response.data);
+                        const lensCleanerDetails = response.data;
+                        const BASE_URL = '<?php echo base_url(); ?>';
+
+                        // Construct product image URL with base_url
+                        let productImage = '';
+                        try {
+                            const images = JSON.parse(lensCleanerDetails.colorImage);
+                            if (Array.isArray(images) && images.length > 0) {
+                                productImage = `${BASE_URL}/images/product/${images[0]}`;
+                            }
+                        } catch (error) {
+                            console.error('Error parsing product image:', error);
+                        }
+
+                        // Add lens cleaner as a separate item
+                        const lensCleanerItem = {
+                            cart_item_id: generateUniqueId(),
+                            product_details: {
+                                product_id: lensCleanerDetails.pid,
+                                product_name: lensCleanerDetails.productName,
+                                barcode: lensCleanerDetails.barcode,
+                                product_color: lensCleanerDetails.colorName,
+                                product_color_code: '',
+                                product_color_name: '',
+                                product_price: lensCleanerDetails.sales_rate,
+                                product_discount: 0,
+                                product_image: productImage,
+                                group_id: '',
+                                isPrivilegeApplied: '0'
+                            },
+                            medical_record: null,
+                            lens_details: null,
+                            coating_details: null
+                        };
+                        productData.push(lensCleanerItem);
+                        // console.log("lensCleanerItem : ", lensCleanerItem);
+
+                        localStorage.setItem('productData', JSON.stringify(productData));
+                        // console.log("lensCleanerItem productData: ", productData);
+
+                        localStorage.setItem('flags', JSON.stringify({ lensCleanerAdd: true }));
+                        const flags = JSON.parse(localStorage.getItem('flags'));
+
+                        // Execute callback after adding the lens cleaner
+                        if (typeof callback === 'function') {
+                            callback(productData);
+                        }
+
+                        
+                    } else {
+                        console.log('Failed to lens cleaner details.');
+                    }
+                },
+                error: function() {
+                    console.log('An error occurred while fetching the lens cleaner details.');
+                }
+            });
+        }
+
+
         function storeCartItems(){
+
             // store cart details
+            let productData = JSON.parse(localStorage.getItem('productData')) || [];
 
-                let productData = JSON.parse(localStorage.getItem('productData')) || [];
+            // Function to generate a unique cart_item_id
+            const generateUniqueId = () => 'cart_' + Date.now() + Math.floor(Math.random() * 1000);
 
-                // Collect data for the new item
-                const productDetails = {
-                    product_id: $('#product_id').val(),
-                    product_name: $('#cart-frame-product-name').val(),
-                    product_color:  $('#cart-frame-product-color').text().trim(),
-                    product_color_code:  $('#cart-frame-product-colorCode').text().trim(),
-                    product_color_name:  $('#cart-frame-product-colorName').text().trim(),
-                    product_price: $('#cart-frame-product-price').val(),
-                    product_discount: 0,
-                    product_image: $('#cart-frame-product-image').attr('src'),
-                    group_id: $('#group_id').val(),
-                    isPrivilegeApplied: $('#isPrivilegeApplied').val()
+            // Collect data for the new item
+            const productDetails = {
+                product_id: $('#product_id').val(),
+                product_name: $('#cart-frame-product-name').val(),
+                barcode: $('#cart-frame-product-barcode').val(),
+                product_color:  $('#cart-frame-product-color').text().trim(),
+                product_color_code:  $('#cart-frame-product-colorCode').text().trim(),
+                product_color_name:  $('#cart-frame-product-colorName').text().trim(),
+                product_price: $('#cart-frame-product-price').val(),
+                product_discount: 0,
+                product_image: $('#cart-frame-product-image').attr('src'),
+                group_id: $('#group_id').val(),
+                isPrivilegeApplied: $('#isPrivilegeApplied').val()
+            };
+
+            const lensDetails = {
+                lens_id: $('#cart-lens-id').text().trim(),
+                lens_name: $('#cart-lens-name').text().trim(),
+                lens_price: $('#cart-lens-price').text().trim(),
+                lens_discount: 0,
+                exp_delivery: $('#expected-delivery').text().trim(),
+                exp_delivery_date: $('#expected-delivery-date').val()
+            };
+
+            const coatingDetails = {
+                coating_id: $('#cart-coating-id').text(),
+                coating_name: $('#cart-coating-name').text().trim(),
+                coating_desc: $('#cart-coating-desc').text().trim(),
+                coating_price: $('#cart-coating-price').text().trim(),
+                coating_discount: 0
+            };
+
+            // Check if an item with the same product_id and eye_id exists in productData
+            const existingItemIndex = productData.findIndex(item => 
+                item.product_details.product_id === productDetails.product_id
+            );
+
+            // If in edit mode and item exists, update the existing one
+            if (isEditMode && existingItemIndex > -1) {
+                productData[existingItemIndex] = {
+                    ...productData[existingItemIndex],
+                    product_details: productDetails,
+                    lens_details: lensDetails,
+                    coating_details: coatingDetails
                 };
-
-                const lensDetails = {
-                    lens_id: $('#cart-lens-id').text().trim(),
-                    lens_name: $('#cart-lens-name').text().trim(),
-                    lens_price: $('#cart-lens-price').text().trim(),
-                    lens_discount: 0,
-                    exp_delivery: $('#expected-delivery').text().trim(),
-                    exp_delivery_date: $('#expected-delivery-date').val()
-                };
-
-                const coatingDetails = {
-                    coating_id: $('#cart-coating-id').text(),
-                    coating_name: $('#cart-coating-name').text().trim(),
-                    coating_desc: $('#cart-coating-desc').text().trim(),
-                    coating_price: $('#cart-coating-price').text().trim(),
-                    coating_discount: 0
-                };
-
-                // Create the new cart item object
+            } else {
+                // Add new item with a unique cart_item_id
                 const newItem = {
+                    cart_item_id: generateUniqueId(),
                     product_details: productDetails,
                     medical_record: null,
                     lens_details: lensDetails,
                     coating_details: coatingDetails
                 };
+                productData.push(newItem);
+            }
 
-                // Check if an item with the same product_id and eye_id exists in productData
-                const existingItemIndex = productData.findIndex(item => 
-                    item.product_details.product_id === productDetails.product_id
-                );
-
-                if (existingItemIndex > -1) {
-                    // Update the existing item
-
-                    productData[existingItemIndex] = { ...productData[existingItemIndex], ...newItem };
-                } else {
-                    // Add the new item if it's not a duplicate
-                    productData.push(newItem);
-                }
-
-                // Save the updated productData array to localStorage
-                localStorage.setItem('productData', JSON.stringify(productData));
-                
-
+            // Save the updated productData array to localStorage
+            localStorage.setItem('productData', JSON.stringify(productData));
             console.log("storedProductData: ", productData);
+
+            let flags = JSON.parse(localStorage.getItem('flags')) || { lensCleanerAdd: true };
+            // console.log("flags l: ", flags.lensCleanerAdd);
+
+            const hasLensCleaner = productData.some(item => item.product_details?.barcode === '0114');
+
+            if(flags.lensCleanerAdd == true && !hasLensCleaner){
+                addLenscleaner(updatedData => {
+                    console.log("Final Updated Product Data: ", updatedData);
+                    displayCartItems();
+                });
+            }
             // console.log("last item: ", newItem);
+        }
+
+        function saveNewMedical(){
+            let form = $('#addMedicalForm');// Prevent default form submission
+            let formData = form.serialize(); // Collect form data
+
+            $.ajax({
+                type: 'POST',
+                url: form.attr('action'), 
+                data: formData,
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $('#addmedicalrecord').modal('hide'); 
+                        // Optionally reset form:
+                        $('#addMedicalForm')[0].reset();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success...',
+                            text: 'Saved Successfully.',
+                            // didClose: () => {
+                            //     $('#medicalrecord').modal('show'); // Show medicalrecord modal after alert closes
+                            // }
+                        });
+
+                    }else{
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Oops...',
+                            text: 'Something went wrong!',
+                        });
+                    }
+           
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error('Submission failed:', error);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                    });
+                }
+            });
         }
 
         // for medicalrecord edit load modal
         $('#medicalrecord').on('show.bs.modal', function(event) {
 
             const button = $(event.relatedTarget); // Button that triggered the modal
-            const productId = button.data('product-id').toString();
+            // const productId = button.data('product-id').toString();
+            const productId = String((button instanceof jQuery ? button.data('product-id') : button.getAttribute('data-product-id')) ?? '');
+
 
             // Retrieve data from local storage
             const productData = JSON.parse(localStorage.getItem('productData')) || [];
@@ -2458,22 +2859,19 @@
 
                                     const prescription = JSON.parse(datas.Prescription);
 
-                                    // Reference the table
-                                    const table = document.getElementById('prescriptionTable');
-
                                     // Set Right Eye data
-                                    table.querySelector('tbody tr:nth-child(1) td:nth-child(2)').innerText = prescription.right.sph;
-                                    table.querySelector('tbody tr:nth-child(2) td:nth-child(2)').innerText = prescription.right.cyl;
-                                    table.querySelector('tbody tr:nth-child(3) td:nth-child(2)').innerText = prescription.right.axis;
-                                    table.querySelector('tbody tr:nth-child(4) td:nth-child(2)').innerText = prescription.right.add;
-                                    table.querySelector('tbody tr:nth-child(5) td:nth-child(2)').innerText = prescription.right.pd;
+                                    document.getElementById('sphrr').value = prescription.right.sph || '';
+                                    document.getElementById('cylrr').value = prescription.right.cyl || '';
+                                    document.getElementById('axisrr').value = prescription.right.axis || '';
+                                    document.getElementById('addrr').value = prescription.right.add || '';
+                                    document.getElementById('pdrr').value = prescription.right.pd || '';
 
-                                    // Set Left Eye data
-                                    table.querySelector('tbody tr:nth-child(1) td:nth-child(3)').innerText = prescription.left.sph;
-                                    table.querySelector('tbody tr:nth-child(2) td:nth-child(3)').innerText = prescription.left.cyl;
-                                    table.querySelector('tbody tr:nth-child(3) td:nth-child(3)').innerText = prescription.left.axis;
-                                    table.querySelector('tbody tr:nth-child(4) td:nth-child(3)').innerText = prescription.left.add;
-                                    table.querySelector('tbody tr:nth-child(5) td:nth-child(3)').innerText = prescription.left.pd;
+                                    // Left Eye
+                                    document.getElementById('sphll').value = prescription.left.sph || '';
+                                    document.getElementById('cylll').value = prescription.left.cyl || '';
+                                    document.getElementById('axisll').value = prescription.left.axis || '';
+                                    document.getElementById('addll').value = prescription.left.add || '';
+                                    document.getElementById('pdll').value = prescription.left.pd || '';
                                 } else {
                                     console.log('Failed to load User details.');
                                 }
@@ -2500,8 +2898,11 @@
                     const table = document.getElementById('prescriptionTable');
                     if (table) {
                         for (let row of table.querySelectorAll('tbody tr')) {
-                            row.querySelector('td:nth-child(2)').innerText = ''; // Right Eye Column
-                            row.querySelector('td:nth-child(3)').innerText = ''; // Left Eye Column
+                            let inputRight = row.querySelector('td:nth-child(2) input');
+                            let inputLeft = row.querySelector('td:nth-child(3) input');
+
+                            if (inputRight) inputRight.value = '';
+                            if (inputLeft) inputLeft.value = '';
                         }
                     }
                 }
@@ -2529,17 +2930,17 @@
                 }
             };
 
-            const rightSph = $('#prescriptionTable tbody tr:nth-child(1) td:nth-child(2)').text().trim();
-            const rightCyl = $('#prescriptionTable tbody tr:nth-child(2) td:nth-child(2)').text().trim();
-            const rightAxis = $('#prescriptionTable tbody tr:nth-child(3) td:nth-child(2)').text().trim();
-            const rightAdd = $('#prescriptionTable tbody tr:nth-child(4) td:nth-child(2)').text().trim();
-            const rightPd = $('#prescriptionTable tbody tr:nth-child(5) td:nth-child(2)').text().trim();
+            const rightSph =  $('#sphrr').val();
+            const rightCyl =  $('#cylrr').val();
+            const rightAxis =  $('#axisrr').val();
+            const rightAdd =  $('#addrr').val();
+            const rightPd =  $('#pdrr').val();
 
-            const leftSph = $('#prescriptionTable tbody tr:nth-child(1) td:nth-child(3)').text().trim();
-            const leftCyl = $('#prescriptionTable tbody tr:nth-child(2) td:nth-child(3)').text().trim();
-            const leftAxis = $('#prescriptionTable tbody tr:nth-child(3) td:nth-child(3)').text().trim();
-            const leftAdd = $('#prescriptionTable tbody tr:nth-child(4) td:nth-child(3)').text().trim();
-            const leftPd = $('#prescriptionTable tbody tr:nth-child(5) td:nth-child(3)').text().trim();
+            const leftSph =  $('#sphll').val();
+            const leftCyl =  $('#cylll').val();
+            const leftAxis =  $('#axisll').val();
+            const leftAdd =  $('#addll').val();
+            const leftPd =  $('#pdll').val();
 
             const prescriptions = {
                 right: {
@@ -2575,7 +2976,7 @@
 
             // get user details on checkout page
             const eyeid = $('#eyeid').val();
-            const productId = $('#product_id').val()
+            const productId = $('#product_id').val();
 
             $.ajax({
                 url: '<?php echo base_url(); ?>/get-eyetest-user',
@@ -2586,7 +2987,7 @@
                     if (response.status === 'success') {
                         var eye = response.data;
                         $('#customer_details').find('input[name="cname"]').val(eye.CustomerName);
-                        $('#customer_details').find('input[name="cphone"]').val('+91'+eye.MobileNo1);
+                        $('#customer_details').find('input[name="cphone"]').val(eye.MobileNo1);
                         $('#customer_details').find('input[name="cmail"]').val(eye.Email);
                         // for store medical record in the cart array
                         updateMedicalRecord(productId);
@@ -2606,8 +3007,6 @@
                 text: 'Added Successfully.',
             });  
             M_showStep(2);
-
-
         }
 
 
@@ -2617,6 +3016,7 @@
             const checkoutCartDetailSec = document.querySelector('.carts-checkout');
 
             const productData = JSON.parse(localStorage.getItem('productData')) || [];
+
             let grandTotal = 0;
 
             // Clear existing content
@@ -2628,20 +3028,12 @@
 
                 // Parse individual item prices, removing currency symbols
                 const framePrice = parseFloat((item.product_details.product_price || "0").replace('₹', '')) - parseFloat((item.product_details.product_discount || "0").replace('₹', ''));
-                const lensPrice = parseFloat((item.lens_details.lens_price || "0").replace('₹', '')) - parseFloat((item.lens_details.lens_discount || "0").replace('₹', '') || "0");
-                const coatingPrice = parseFloat((item.coating_details.coating_price || "0").replace('₹', '')) - parseFloat((item.coating_details.coating_discount || "0").replace('₹', '') || "0");
+                const lensPrice = parseFloat((item.lens_details?.lens_price || "0").replace('₹', '')) - parseFloat((item.lens_details?.lens_discount || "0").replace('₹', '') || "0");
+                const coatingPrice = parseFloat((item.coating_details?.coating_price || "0").replace('₹', '')) - parseFloat((item.coating_details?.coating_discount || "0").replace('₹', '') || "0");
 
                 // Calculate total payable for this item
                 const totalPayable = framePrice + lensPrice + coatingPrice;
                 grandTotal += totalPayable; // Add to grand total
-
-                // const framePrice1 = (item.product_details.product_price || "0").replace('₹', '');
-                // const lensPrice1 = (item.lens_details.lens_price || "0").replace('₹', '');
-                // const coatingPrice1 = (item.coating_details.coating_price || "0").replace('₹', '');
-
-                // // Calculate before previlage total 
-                // const totalPayable1 = framePrice1 + lensPrice1 + coatingPrice1;
-                // beforePrevilageTotal += totalPayable1; 
 
                 const cartItemHTML = `
                 <div class="cart-detail-sec">
@@ -2650,9 +3042,11 @@
                         <div class="cart-frame-show g-3">
                             <img src="${item.product_details.product_image}" alt="" class="img-fluid mb-2">
                             <div class="cart-frame-deatils">
+                                <p class="cart-barcode">${item.product_details.barcode}</p>
                                 <h2 class="fw-bold fs-4 cart-frame-product-name">${item.product_details.product_name}</h2>
                                 <p class="selected-color-name-cart">${item.product_details.product_color}</p>
-                                <button type="button" class="btn power-btn" data-bs-toggle="modal" data-bs-target="#medicalrecord" data-product-id="${item.product_details.product_id}">Add Medical Record</button>
+                                <button type="button" class="btn power-btn" data-bs-toggle="modal" data-bs-target="#medicalrecord" data-product-id="${item.product_details.product_id}">Select Medical Record</button>
+                                <button type='button' class='btn power-btn' data-bs-toggle='modal' data-bs-target='#addmedicalrecord'>Add Medical Record</button>
                             </div>
                         </div>
                         <div class="addto-cartbtn flex-wrap">
@@ -2665,11 +3059,11 @@
                     <div class="cart-frame">
                         <div class="cart-frame-show">
                             <div class="cart-frame-deatils cdetails">
-                                <h2 class="cart-lens-name">${item.lens_details.lens_name}</h2>
+                                <h2 class="cart-lens-name">${item.lens_details?.lens_name ?? ''}</h2>
                             </div>
                         </div>
                         <div class="price-sec flex-wrap">
-                            ${item.lens_details.lens_price !== '' && item.lens_details.lens_discount !== '' ?
+                            ${item.lens_details && item.lens_details.lens_price !== '' && item.lens_details.lens_discount !== '' ?
                             `<p class="cart-lens-price">
 
                                 ${item.lens_details.lens_discount !== 0 ?
@@ -2679,8 +3073,8 @@
                             }
 
                             ${
-                                item.lens_details.lens_price
-                                    ? `<a href="javascript:void(0);" class="btn change-btn w-sm-100" onclick="showStep(2)"><i class="icofont-edit-alt" title="Edit Lens"></i></a>`
+                                item.lens_details?.lens_price
+                                    ? `<a href="javascript:void(0);" class="btn change-btn w-sm-100" onclick="showStep(2, true)"><i class="icofont-edit-alt" title="Edit Lens"></i></a>`
                                     : ''
                             }
                         </div>
@@ -2688,12 +3082,12 @@
                     <div class="cart-frame">
                         <div class="cart-frame-show">
                             <div class="cart-frame-deatils cdetails">
-                                <h2 class="cart-coating-name">${item.coating_details.coating_name}</h2>
-                                <p class="cart-coating-desc">${item.coating_details.coating_desc}</p>
+                                <h2 class="cart-coating-name">${item.coating_details?.coating_name ?? ''}</h2>
+                                <p class="cart-coating-desc">${item.coating_details?.coating_desc ?? ''}</p>
                             </div>
                         </div>
                         <div class="price-sec flex-wrap">
-                        ${item.coating_details.coating_price !== '' && item.coating_details.coating_discount !== '' ?
+                        ${item.coating_details && item.coating_details.coating_price !== '' && item.coating_details.coating_discount !== '' ?
                             `<p class="cart-coating-price">
 
                             ${item.coating_details.coating_discount !== 0 
@@ -2703,7 +3097,7 @@
                              ₹${(parseFloat(item.coating_details.coating_price.replace('₹', ''))  - parseFloat(item.coating_details.coating_discount.toString().replace('₹', ''))).toFixed(2)}</p>` : ''
                         }
                             ${
-                                item.coating_details.coating_price
+                                item.coating_details?.coating_price
                                     ? `<a href="javascript:void(0);" class="btn change-btn w-sm-100" onclick="showStep(3)"><i class="icofont-edit-alt" title="Edit Coating"></i></a>`
                                     : ''
                             }
@@ -2714,7 +3108,7 @@
 
                         <div class="price-sec flex-wrap">
 
-                            <a href="javascript:void(0);" class="btn cart-btn-del w-sm-100" onclick="removeCartItem(${index})"><i class="icofont-ui-delete" title="Delete Item"></i></a>
+                            <a href="javascript:void(0);" class="btn cart-btn-del w-sm-100" onclick="removeCartItem(${index}, ${item.product_details.barcode === '0114' ? false : true})"><i class="icofont-ui-delete" title="Delete Item"></i></a>
                         </div>
                     </div>
                 </div>
@@ -2730,6 +3124,7 @@
                         <div class="cart-frame-show g-3">
                             <img src="${item.product_details.product_image}" alt="" class="img-fluid mb-2">
                             <div class="cart-frame-deatils">
+                                <p class="cart-barcode">${item.product_details.barcode}</p>
                                 <h2 class="fw-bold fs-4 cart-frame-product-name">${item.product_details.product_name}</h2>
                                 <p class="selected-color-name-cart">${item.product_details.product_color}</p>
                             </div>
@@ -2741,12 +3136,12 @@
                     <div class="cart-frame">
                         <div class="cart-frame-show">
                             <div class="cart-frame-deatils cdetails">
-                                <h2 class="cart-lens-name">${item.lens_details.lens_name}</h2>
-                                <p>${item.lens_details.exp_delivery}</p>
+                                <h2 class="cart-lens-name">${item.lens_details?.lens_name ?? ''}</h2>
+                                <p>${item.lens_details?.exp_delivery ?? ''}</p>
                             </div>
                         </div>
                         <div class="price-sec flex-wrap">
-                            ${item.lens_details.lens_price !== '' && item.lens_details.lens_discount !== '' ?
+                            ${item.lens_details && item.lens_details.lens_price !== '' && item.lens_details.lens_discount !== '' ?
                             `<p class="cart-lens-price">₹${(parseFloat(item.lens_details.lens_price.replace('₹', ''))  - parseFloat(item.lens_details.lens_discount.toString().replace('₹', ''))).toFixed(2)}</p>` : '' 
                             }
                         </div>
@@ -2754,12 +3149,12 @@
                     <div class="cart-frame">
                         <div class="cart-frame-show">
                             <div class="cart-frame-deatils cdetails">
-                                <h2 class="cart-coating-name">${item.coating_details.coating_name}</h2>
-                                <p class="cart-coating-desc">${item.coating_details.coating_desc}</p>
+                                <h2 class="cart-coating-name">${item.coating_details?.coating_name ?? ''}</h2>
+                                <p class="cart-coating-desc">${item.coating_details?.coating_desc ?? ''}</p>
                             </div>
                         </div>
                         <div class="price-sec flex-wrap">
-                             ${item.coating_details.coating_price !== '' && item.coating_details.coating_discount !== '' ?
+                             ${item.coating_details && item.coating_details.coating_price !== '' && item.coating_details.coating_discount !== '' ?
                             `<p class="cart-coating-price">₹${(parseFloat(item.coating_details.coating_price.replace('₹', ''))  - parseFloat(item.coating_details.coating_discount.toString().replace('₹', ''))).toFixed(2)}</p>` : ''
                             }
                         </div>
@@ -2848,34 +3243,119 @@
                 checkoutCartDetailSec.innerHTML += checkoutCartItemHTML;
             });
 
-            // Update the display with final totals
-            let beforePrevilageTotal = 0;
-            const previlage_discount = parseFloat($('#previlage-discount-amount').text().replace('₹', ''));
-            if(previlage_discount == 0){
-                beforePrevilageTotal = grandTotal;
-            }else{
-                beforePrevilageTotal = grandTotal+previlage_discount;
+
+            // Fetch warranty rate based on grandTotal
+            let warrantyAmount = 0;
+            $.ajax({
+                url: "<?php echo base_url(); ?>/get-warranty-rate",
+                type: 'POST',
+                data: { grandTotal: grandTotal },
+                dataType: 'json',
+                success: function(response) {
+                    // console.log('response',response[0].sales_rate);
+
+                    if(response.length == 0){
+                        warrantyAmount = 0;
+                        updateTotals(warrantyAmount); 
+                    }else{
+                        warrantyAmount = response[0].sales_rate;
+
+                        $('#warranty_id').val(response[0].id);
+                        $('#warranty_amt').val(warrantyAmount);
+
+                        const warrantySectionHtml = `
+                        <p class="value">Breakage Warranty:</p> 
+                        <p class="price" id="warranty">₹${warrantyAmount}</p>
+                            <button class="btn btn-sm btn-danger text-white" onclick="RemoveWarranty()"> Remove Warranty</button>`;
+                        // Add the HTML to the #warranty_section div
+                        document.getElementById('warranty_section').innerHTML = warrantySectionHtml;
+
+                        updateTotals(warrantyAmount);
+                    }
+
+                },
+                error: function(error) {
+                    console.error('Error fetching warranty rate:', error);
+                }
+            });
+
+
+            function updateTotals(warrantyAmount) {
+                // Update the display with final totals
+                let beforePrevilageTotal = 0;
+                const previlage_discount = parseFloat($('#previlage-discount-amount').text().replace('₹', ''));
+                if(previlage_discount == 0){
+                    beforePrevilageTotal = grandTotal;
+                }else{
+                    beforePrevilageTotal = grandTotal+previlage_discount;
+                }
+
+                const returnBillAmount = 0;
+                if (document.getElementById('return')) {
+                    returnBillAmount = parseFloat($('#return').text().replace('₹', ''));
+                }
+
+                finaltotal = Math.max(0, grandTotal - coupen_discount); // Ensure total doesn't go negative
+
+                document.getElementById('before-previlage-total').innerHTML = '₹' + beforePrevilageTotal.toFixed(2);
+
+                document.getElementById('total-pay').innerHTML = '₹' + grandTotal.toFixed(2);
+                document.getElementById('final-total').innerHTML = '₹' + (Number(finaltotal) + Number(warrantyAmount)).toFixed(2);
+                document.getElementById('checkout-final-total').innerHTML = '₹' + (Number(finaltotal) + Number(warrantyAmount)).toFixed(2);
+
+                togglePrivilegeLinks();
             }
-
-            const returnBillAmount = 0;
-            if (document.getElementById('return')) {
-                returnBillAmount = parseFloat($('#return').text().replace('₹', ''));
-            }
-
-            finaltotal = Math.max(0, grandTotal - coupen_discount); // Ensure total doesn't go negative
-
-            document.getElementById('before-previlage-total').innerHTML = '₹' + beforePrevilageTotal.toFixed(2);
-
-            document.getElementById('total-pay').innerHTML = '₹' + grandTotal.toFixed(2);
-            document.getElementById('final-total').innerHTML = '₹' + finaltotal.toFixed(2);
-            document.getElementById('checkout-final-total').innerHTML = '₹' + finaltotal.toFixed(2);
-
-            togglePrivilegeLinks();
             
         }
 
-        function removeCartItem(index) {
+        function RemoveWarranty() {
+             document.getElementById('warranty_section').innerHTML = '';
+
+            // Reset hidden fields
+            $('#warranty_id').val('');
+            $('#warranty_amt').val(0);
+            let warrantyAmount = 0;
+
+            const grandTotal = parseFloat($('#total-pay').text().replace('₹', '')) || 0;
+            const coupen_discount = parseFloat($('#discount-amount').text().replace('₹', '')) || 0;
+            // Update totals without warranty
+                let beforePrevilageTotal = 0;
+                const previlage_discount = parseFloat($('#previlage-discount-amount').text().replace('₹', ''));
+                if(previlage_discount == 0){
+                    beforePrevilageTotal = grandTotal;
+                }else{
+                    beforePrevilageTotal = grandTotal+previlage_discount;
+                }
+
+                const returnBillAmount = 0;
+                if (document.getElementById('return')) {
+                    returnBillAmount = parseFloat($('#return').text().replace('₹', ''));
+                }
+
+                finaltotal = Math.max(0, grandTotal - coupen_discount); // Ensure total doesn't go negative
+
+                document.getElementById('before-previlage-total').innerHTML = '₹' + beforePrevilageTotal.toFixed(2);
+
+                document.getElementById('total-pay').innerHTML = '₹' + grandTotal.toFixed(2);
+                document.getElementById('final-total').innerHTML = '₹' + (Number(finaltotal) + Number(warrantyAmount)).toFixed(2);
+                document.getElementById('checkout-final-total').innerHTML = '₹' + (Number(finaltotal) + Number(warrantyAmount)).toFixed(2);
+
+                togglePrivilegeLinks();
+        }
+
+        function removeCartItem(index, status) {
             const productData = JSON.parse(localStorage.getItem('productData')) || [];
+            // Update global editMode only if provided
+            if (typeof status !== 'undefined') {
+                lensCleaner = Boolean(status);
+
+                const flags = JSON.parse(localStorage.getItem('flags')) || {};
+                // Update the lensCleanerAdd status
+                flags.lensCleanerAdd = lensCleaner;
+                // Save updated flags back to localStorage
+                localStorage.setItem('flags', JSON.stringify(flags));
+            }
+
             
             // Remove item at the specified index
             productData.splice(index, 1);
@@ -2891,8 +3371,16 @@
         // pagination 
         let currentStep = 1;
         const totalSteps = 5;
+        let isEditMode = false;
 
-        function showStep(step) {
+
+        function showStep(step, editMode = isEditMode) {
+
+            // Update global editMode only if provided
+            if (typeof editMode !== 'undefined') {
+                isEditMode = editMode;
+            }
+            // console.log("Current Step:", currentStep, "s Edit Mode:", isEditMode);
             // Hide all steps
             document.querySelectorAll('.step').forEach(function(stepDiv) {
                 stepDiv.style.display = 'none';
@@ -3032,7 +3520,8 @@
                                     <input type="radio" name="tab" onclick="openTab(event, 'tab${index + 1}', ${lens.salesRate}, '${lens.lensName}', ${lens.lensId})">
                                     ${lens.lensName}
                                 </label>
-                                <span class="lens-price">&#8377; <b>${lens.salesRate}</b></span>
+                                ${parseFloat(lens.salesRate) > 0 ? `<span class="lens-price">&#8377; <b>${lens.salesRate}</b></span>` : ''}
+              
                             `;
                             
                             lensListTab.appendChild(lensItem);
@@ -3081,23 +3570,19 @@
         
                         var prescription = JSON.parse(datas.Prescription);
 
-                        // Reference the table
-                        var table = document.getElementById('prescriptionTable');
+                         // Right Eye
+                        document.getElementById('sphrr').value = prescription.right.sph || '';
+                        document.getElementById('cylrr').value = prescription.right.cyl || '';
+                        document.getElementById('axisrr').value = prescription.right.axis || '';
+                        document.getElementById('addrr').value = prescription.right.add || '';
+                        document.getElementById('pdrr').value = prescription.right.pd || '';
 
-                        // Set Right Eye data
-                        table.querySelector('tbody tr:nth-child(1) td:nth-child(2)').innerText = prescription.right.sph;
-                        table.querySelector('tbody tr:nth-child(2) td:nth-child(2)').innerText = prescription.right.cyl;
-                        table.querySelector('tbody tr:nth-child(3) td:nth-child(2)').innerText = prescription.right.axis;
-                        table.querySelector('tbody tr:nth-child(4) td:nth-child(2)').innerText = prescription.right.add;
-                        table.querySelector('tbody tr:nth-child(5) td:nth-child(2)').innerText = prescription.right.pd;
-
-                        // Set Left Eye data
-                        table.querySelector('tbody tr:nth-child(1) td:nth-child(3)').innerText = prescription.left.sph;
-                        table.querySelector('tbody tr:nth-child(2) td:nth-child(3)').innerText = prescription.left.cyl;
-                        table.querySelector('tbody tr:nth-child(3) td:nth-child(3)').innerText = prescription.left.axis;
-                        table.querySelector('tbody tr:nth-child(4) td:nth-child(3)').innerText = prescription.left.add;
-                        table.querySelector('tbody tr:nth-child(5) td:nth-child(3)').innerText = prescription.left.pd;
-
+                        // Left Eye
+                        document.getElementById('sphll').value = prescription.left.sph || '';
+                        document.getElementById('cylll').value = prescription.left.cyl || '';
+                        document.getElementById('axisll').value = prescription.left.axis || '';
+                        document.getElementById('addll').value = prescription.left.add || '';
+                        document.getElementById('pdll').value = prescription.left.pd || '';
 
                     } else {
                         console.log('Failed to load User details.');

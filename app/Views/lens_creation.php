@@ -49,8 +49,8 @@
                                 <input type="number" class="form-control" name="mrp">
                             </div>
                             <div class="col-md-6">
-                                <label  class="form-label">Sales Rate <span style="color: #f00; font-size: 15px;">*</span></label>
-                                <input type="number" class="form-control" name="salesrate" required>
+                                <label  class="form-label">Sales Rate </label>
+                                <input type="number" class="form-control" name="salesrate" >
                             </div>
                             <div class="col-md-6">
                                 <label  class="form-label">Delivery Days <span style="color: #f00; font-size: 15px;">*</span></label>
@@ -63,12 +63,13 @@
                             
                         </div>
                     </div>
+
                 </div>
                 
             </div>
             <div class="col-xl-4 col-lg-4">
                 <div class="sticky-lg-top">
-                    <div class="card mb-3">
+                    <!-- <div class="card mb-3">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom-0">
                             <h6 class="m-0 fw-bold">Features</h6>
                         </div>
@@ -79,6 +80,28 @@
                                 <img src="<?php echo base_url(); ?>/images/lensfeatures/<?= $features->image; ?>" style="height: 50px; border-radius: 50px;">
                                 <label class="form-check-label" for="feature<?= $features->id; ?>">
                                 <?= $features->description; ?>
+                                </label>
+                            </div>
+                            <?php } ?>
+                        </div>
+                    </div> -->
+
+
+
+                    <div class="card mb-3">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom-0">
+                            <h6 class="m-0 fw-bold">Lens Coating</h6>
+                        </div>
+                        <div class="card-body">
+                            <?php foreach ($coating as $coating){ ?>
+
+                            <div class="form-check">
+                                <input class="form-check-input mt-3" type="checkbox" name="coating[]" value="<?= $coating->id; ?>" id="coating<?= $coating->id; ?>">
+                                <?php if($coating->image){?>
+                                <img src="<?= base_url(); ?>/images/lenscoating/<?= $coating->image; ?>" style="height: 50px; border-radius: 50px;">
+                                <?php } ?>
+                                <label class="form-check-label mt-2" for="coating<?= $coating->id; ?>">
+                                <?= $coating->coating_name; ?>
                                 </label>
                             </div>
                             <?php } ?>

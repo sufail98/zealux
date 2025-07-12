@@ -86,15 +86,15 @@ class Product extends BaseController
 			    $imageArray = [];
 			   
 	            if (isset($product_images) && is_array($product_images)) {
-		            foreach ($product_images as $img) {
-		                if ($img->isValid() && !$img->hasMoved()) {
-		                    $newName = $img->getRandomName();
-		                    if ($img->move('./images/product', $newName)) {
-		                        $imageArray[] = $newName;  // Add filename to array
-		                    }
-		                }
-		            }
-		        }
+				    foreach ($product_images as $img) {
+				        if ($img->isValid() && !$img->hasMoved()) {
+				            $newName = $this->compressAndMoveImage($img, './images/product/');
+				            if ($newName) {
+				                $imageArray[] = $newName;
+				            }
+				        }
+				    }
+				}
 			   
 			    $data1[] = [
 			        'pid' => $insertid,
@@ -106,22 +106,22 @@ class Product extends BaseController
 			        'CreatedDate' => date('Y-m-d H:i:s')
 			    ];
 
-			    $stockdata[] = [
-		        	'voucher_type' => 'opening stock',
-		        	'voucher_no' => $insertid,
-		            'document_no' => $insertid,
-		            'pid' => $insertid,
-		            'color' => $colorname[$i],
-		            'inward_qty' => $stock[$i],
-		            'outward_qty' => 0,
-		            'purchase_rate' => $this->request->getPost('purchase_rate'),
-		            'sales_rate' => $this->request->getPost('salesrate'),
-		            'stock_date' => date('Y-m-d'),
-		            'store_id' => 1,
-					'CreatedDate' => date('Y-m-d H:i:s'),
-	            	'CreatedUser' => $_SESSION['user_id']
+			    // $stockdata[] = [
+		        // 	'voucher_type' => 'opening stock',
+		        // 	'voucher_no' => $insertid,
+		        //     'document_no' => $insertid,
+		        //     'pid' => $insertid,
+		        //     'color' => $colorname[$i],
+		        //     'inward_qty' => $stock[$i],
+		        //     'outward_qty' => 0,
+		        //     'purchase_rate' => $this->request->getPost('purchase_rate'),
+		        //     'sales_rate' => $this->request->getPost('salesrate'),
+		        //     'stock_date' => date('Y-m-d'),
+		        //     'store_id' => 1,
+				// 	'CreatedDate' => date('Y-m-d H:i:s'),
+	            // 	'CreatedUser' => $_SESSION['user_id']
 
-		        ];
+		        // ];
 	
 			}
 
@@ -129,11 +129,11 @@ class Product extends BaseController
 				if (count($colorname) > 0) {
 					$insertsplit = $this->productModel->InsertItemImagesMdl($data1);
 					if($insertsplit){
-						$add_stock = $this->productModel->AddStock($stockdata);
-			        	if (!$add_stock) {
-				            $session->setFlashdata('alert', 'error|Oops...|Failed to add Stock.Try Again');
-		            		return redirect()->to('add-product');
-				        }
+						// $add_stock = $this->productModel->AddStock($stockdata);
+			        	// if (!$add_stock) {
+				        //     $session->setFlashdata('alert', 'error|Oops...|Failed to add Stock.Try Again');
+		            	// 	return redirect()->to('add-product');
+				        // }
 						$session->setFlashdata('alert', 'success|Success...|Added Successfully');
             			return redirect()->to('add-product');
 					}else{
@@ -153,6 +153,39 @@ class Product extends BaseController
 		}
 		
 	}
+	private function compressAndMoveImage($img, $targetFolder)
+	{
+		$session = session();
+		if(!empty($_SESSION['user'])){
+		    if ($img->isValid() && !$img->hasMoved()) {
+		        $newName = $img->getRandomName();
+		        $tempPath = $img->getTempName(); // Get the uploaded temp file
+
+		        // Create image resource
+		        $info = getimagesize($tempPath);
+		        if ($info['mime'] == 'image/jpeg') {
+		            $image = imagecreatefromjpeg($tempPath);
+		        } elseif ($info['mime'] == 'image/png') {
+		            $image = imagecreatefrompng($tempPath);
+		        } else {
+		            return null; // Unsupported format
+		        }
+
+		        // Save with compression
+		        $finalPath = $targetFolder . $newName;
+		        imagejpeg($image, $finalPath, 75); // 75% quality for compression
+
+		        // Free memory
+		        imagedestroy($image);
+
+		        return $newName;
+		    }
+		    return null;
+	    } else {
+			return view('login');
+		}
+	}
+
 	public function ProductEdit($id)
 	{
 		$session = session();
@@ -210,16 +243,13 @@ class Product extends BaseController
 			    $imageArray = [];
 			   
 	            if (isset($product_images) && is_array($product_images)) {
-		            foreach ($product_images as $img) {
-		                if ($img->isValid() && !$img->hasMoved()) {
-		                    $newName = $img->getRandomName();
-		                    if ($img->move('./images/product', $newName)) {
-		                        $imageArray[] = $newName;  
-		                    }
-		                }
-		            }
-
-		        }
+                    foreach ($product_images as $img) {
+                        $newName = $this->compressAndMoveImage($img, './images/product/');
+                        if ($newName) {
+                            $imageArray[] = $newName;
+                        }
+                    }
+                }
 
 		        // If no new images are uploaded, use the existing images
 			    if (empty($imageArray) && !empty($existingImages)) {
@@ -236,33 +266,33 @@ class Product extends BaseController
 			        'CreatedDate' => date('Y-m-d H:i:s')
 			    ];
 
-			    $stockdata[] = [
-		        	'voucher_type' => 'opening stock',
-		        	'voucher_no' => $this->request->getPost('pid'),
-		            'document_no' => $this->request->getPost('pid'),
-		            'pid' => $this->request->getPost('pid'),
-		            'color' => $colorname[$i],
-		            'inward_qty' => $stock[$i],
-		            'outward_qty' => 0,
-		            'purchase_rate' => $this->request->getPost('purchase_rate'),
-		            'sales_rate' => $this->request->getPost('salesrate'),
-		            'stock_date' => date('Y-m-d'),
-		            'store_id' => 1,
-					'CreatedDate' => date('Y-m-d H:i:s'),
-	            	'CreatedUser' => $_SESSION['user_id']
+			    // $stockdata[] = [
+		        // 	'voucher_type' => 'opening stock',
+		        // 	'voucher_no' => $this->request->getPost('pid'),
+		        //     'document_no' => $this->request->getPost('pid'),
+		        //     'pid' => $this->request->getPost('pid'),
+		        //     'color' => $colorname[$i],
+		        //     'inward_qty' => $stock[$i],
+		        //     'outward_qty' => 0,
+		        //     'purchase_rate' => $this->request->getPost('purchase_rate'),
+		        //     'sales_rate' => $this->request->getPost('salesrate'),
+		        //     'stock_date' => date('Y-m-d'),
+		        //     'store_id' => 1,
+				// 	'CreatedDate' => date('Y-m-d H:i:s'),
+	            // 	'CreatedUser' => $_SESSION['user_id']
 
-		        ];
+		        // ];
 			}
 
 			if($update){
 				
 				$insertsplit = $this->productModel->UpdateImagesplitMdl($data1,$this->request->getPost('pid'));
 				if($insertsplit){
-					$add_stock = $this->productModel->UpdateStock($stockdata);
-		        	if (!$add_stock) {
-			            $session->setFlashdata('alert', 'error|Oops...|Failed to add Stock.Try Again');
-	            		return redirect()->to('edit-product');
-			        }
+					// $add_stock = $this->productModel->UpdateStock($stockdata);
+		        	// if (!$add_stock) {
+			        //     $session->setFlashdata('alert', 'error|Oops...|Failed to add Stock.Try Again');
+	            	// 	return redirect()->to('edit-product');
+			        // }
 					$session->setFlashdata('alert', 'success|Success...|Updated Successfully');
             		return redirect()->to('edit-product/' . $this->request->getPost('pid'));
 				}
